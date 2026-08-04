@@ -97,8 +97,8 @@ def validate_extracted_text(text: str) -> ValidationResult:
             ),
         )
 
-    # Check minimum meaningful length (at least 100 characters for a real resume)
-    if len(text.strip()) < 100:
+    # Check minimum meaningful length (at least 50 characters for a real resume)
+    if len(text.strip()) < 50:
         return ValidationResult(
             valid=False,
             error=(
