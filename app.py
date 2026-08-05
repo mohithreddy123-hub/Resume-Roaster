@@ -148,7 +148,7 @@ def run_analysis_pipeline(
     weaknesses = extract_weaknesses(clean_resume_text)
 
     # Step 7: Generate AI-powered overall feedback (passing Job Description)
-    with st.spinner("Senior recruiter is reviewing your resume... This may take a moment."):
+    with st.spinner("Analyzing your resume... This may take a moment."):
         try:
             system_prompt  = get_system_prompt()
             analysis_query = get_roast_prompt(clean_resume_text, category, job_description)
