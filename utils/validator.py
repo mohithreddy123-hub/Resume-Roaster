@@ -108,3 +108,74 @@ def validate_extracted_text(text: str) -> ValidationResult:
         )
 
     return ValidationResult(valid=True)
+
+
+import re
+
+
+def find_missing_fields(text: str) -> list[str]:
+    """
+    Detect missing critical fields in a resume.
+
+    Checks for:
+        - Email address
+        - Phone number
+        - Education section / keywords
+        - Projects section / keywords
+        - Technical Skills section / keywords
+        - Work Experience / Internships
+        - GitHub profile
+        - LinkedIn profile
+        - Portfolio / Website link
+        - Graduation year (e.g., 2020-2026)
+
+    Args:
+        text: Cleaned resume text string.
+
+    Returns:
+        List of human-readable missing field descriptions.
+    """
+    missing: list[str] = []
+    text_lower = text.lower()
+
+    # 1. Email address
+    if not re.search(r"[\w\.-]+@[\w\.-]+\.\w+", text):
+        missing.append("Email Address")
+
+    # 2. Phone number
+    if not re.search(r"\(?\+?\d{1,3}\)?[-.\s]?\d{3,4}[-.\s]?\d{4,6}", text):
+        missing.append("Phone Number")
+
+    # 3. Education
+    if not re.search(r"\b(education|b\.?tech|b\.?e|b\.?s|master|bachelor|degree|university|college|gpa)\b", text_lower):
+        missing.append("Education Section")
+
+    # 4. Graduation Year
+    if not re.search(r"\b(201[5-9]|202[0-9]|203[0])\b", text):
+        missing.append("Graduation Year")
+
+    # 5. Projects
+    if not re.search(r"\b(projects?|built|developed|implemented)\b", text_lower):
+        missing.append("Projects Section")
+
+    # 6. Technical Skills
+    if not re.search(r"\b(skills?|technologies|languages|frameworks|tools)\b", text_lower):
+        missing.append("Technical Skills Section")
+
+    # 7. Experience / Internships
+    if not re.search(r"\b(experience|internship|employment|worked|company)\b", text_lower):
+        missing.append("Work Experience / Internships")
+
+    # 8. GitHub
+    if "github.com" not in text_lower and "github:" not in text_lower:
+        missing.append("GitHub Profile Link")
+
+    # 9. LinkedIn
+    if "linkedin.com" not in text_lower and "linkedin:" not in text_lower:
+        missing.append("LinkedIn Profile Link")
+
+    # 10. Portfolio
+    if not re.search(r"\b(portfolio|website|http|https)\b", text_lower):
+        missing.append("Portfolio / Website Link")
+
+    return missing

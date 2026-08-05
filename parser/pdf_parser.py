@@ -56,12 +56,24 @@ def parse_pdf(file_bytes: bytes) -> str:
 
     try:
         for page_number in range(len(doc)):
-            page = doc.load_page(page_number)
-            page_text = page.get_text("text")  # type: ignore[arg-type]
+            # Extract text preserving layout reading order (multi-column top-to-bottom)
+            page_text = page.get_text("text", sort=True)  # type: ignore[arg-type]
+
+            # Also extract embedded hyperlinks (e.g. GitHub/LinkedIn links)
+            links = page.get_links()
+            link_urls: list[str] = []
+            for link in links:
+                uri = link.get("uri", "")
+                if uri and (uri.startswith("http://") or uri.startswith("https://")):
+                    link_urls.append(uri)
+
+            combined_page_text = page_text.strip() if page_text else ""
+            if link_urls:
+                combined_page_text += "\n" + "\n".join(set(link_urls))
 
             # Only include pages that have actual content
-            if page_text and page_text.strip():
-                pages_text.append(page_text.strip())
+            if combined_page_text.strip():
+                pages_text.append(combined_page_text.strip())
     except Exception as e:
         raise PDFParseError(f"Failed to extract text from PDF pages.") from e
     finally:

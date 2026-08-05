@@ -49,9 +49,12 @@ def _get_api_key() -> str:
     return key
 
 
-def _initialize_model() -> genai.GenerativeModel:
+def _initialize_model(json_mode: bool = False) -> genai.GenerativeModel:
     """
     Initialize and return the Gemini GenerativeModel.
+
+    Args:
+        json_mode: If True, configures the model to output strict JSON.
 
     Raises:
         GeminiAPIKeyMissingError: If the API key is missing.
@@ -60,13 +63,17 @@ def _initialize_model() -> genai.GenerativeModel:
     api_key = _get_api_key()
     try:
         genai.configure(api_key=api_key)
+        config_args = {
+            "temperature": 0.7,
+            "top_p": 0.9,
+            "max_output_tokens": 2048,
+        }
+        if json_mode:
+            config_args["response_mime_type"] = "application/json"
+
         model = genai.GenerativeModel(
             model_name=GEMINI_MODEL,
-            generation_config=genai.GenerationConfig(
-                temperature=0.7,       # Balanced — creative but not hallucinating
-                top_p=0.9,
-                max_output_tokens=2048,
-            ),
+            generation_config=genai.GenerationConfig(**config_args),
         )
         return model
     except Exception as e:
@@ -79,28 +86,26 @@ def send_message(
     system_prompt: str,
     user_message: str,
     conversation_history: list[dict] | None = None,
+    json_mode: bool = False,
 ) -> str:
     """
     Send a message to Gemini and return the response text.
-
-    Combines system prompt + conversation history + new user message
-    into a single structured request. Retries up to GEMINI_MAX_RETRIES times
-    on transient failures.
 
     Args:
         system_prompt:        The AI personality and behavior instructions.
         user_message:         The user's current message/query.
         conversation_history: List of previous {role, content} dicts.
                               Roles must be "user" or "model".
+        json_mode:            If True, requests response in JSON format.
 
     Returns:
-        The AI's response as a plain text string.
+        The AI's response text string.
 
     Raises:
         GeminiAPIKeyMissingError: If the API key is not set.
         GeminiError:              If all retries are exhausted.
     """
-    model = _initialize_model()
+    model = _initialize_model(json_mode=json_mode)
     history = conversation_history or []
 
     # Build Gemini-compatible chat history

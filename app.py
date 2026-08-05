@@ -90,22 +90,29 @@ def reset_session() -> None:
 
 
 # ── Resume Analysis Pipeline ──────────────────────────────────
+from parser.section_detector import extract_structured_resume
+from prompts.json_schema import parse_and_validate_analysis_json
+from prompts.conversation_prompt import build_conversation_user_prompt
+
+
 def run_analysis_pipeline(
     file_bytes: bytes, filename: str, job_description: str = ""
 ) -> bool:
     """
-    Orchestrate the full analysis flow.
+    Orchestrate the full deterministic analysis pipeline.
 
     Steps:
-        1. Validate file
-        2. Parse resume
-        3. Validate extracted text
-        4. Clean text
-        5. Calculate local scores & classify (for internal tone category)
-        6. Extract strengths and weaknesses
-        7. Generate AI feedback via Gemini (with optional Job Description)
-        8. Extract strict scores from AI response
-        9. Store everything in session state
+        1. Validate uploaded file.
+        2. Parse raw text from PDF/DOCX.
+        3. Validate extracted text.
+        4. Clean text.
+        5. Detect resume sections (Python).
+        6. Detect missing critical fields (Python).
+        7. Calculate deterministic Resume Score & ATS Score (Python).
+        8. Classify resume into internal category (Python).
+        9. Send structured context to Gemini for JSON analysis.
+        10. Parse and validate JSON analysis response.
+        11. Store structured analysis & state in session.
 
     Args:
         file_bytes:      Raw bytes of the uploaded file.
@@ -121,7 +128,7 @@ def run_analysis_pipeline(
         st.session_state.error_message = file_validation.error
         return False
 
-    # Step 2: Parse resume
+    # Step 2: Parse resume text
     with st.spinner("Reading your resume..."):
         parse_result = parse_resume(file_bytes, filename)
 
@@ -135,28 +142,40 @@ def run_analysis_pipeline(
         st.session_state.error_message = text_validation.error
         return False
 
-    # Step 4: Clean the text
+    # Step 4: Clean text
     clean_resume_text = clean_text(parse_result.text)
 
-    # Step 5: Local score estimation & internal classification
-    local_resume_score = calculate_resume_score(clean_resume_text)
-    local_ats_score    = calculate_ats_score(clean_resume_text)
-    category = classify_resume(local_resume_score)
+    # Step 5: Detect sections in Python
+    structured_resume = extract_structured_resume(clean_resume_text)
 
-    # Step 6: Extract strengths and weaknesses (local baseline)
-    strengths  = extract_strengths(clean_resume_text)
-    weaknesses = extract_weaknesses(clean_resume_text)
+    # Step 6: Detect missing fields in Python
+    missing_fields = find_missing_fields(clean_resume_text)
 
-    # Step 7: Generate AI-powered overall feedback (passing Job Description)
-    with st.spinner("Analyzing your resume... This may take a moment."):
+    # Step 7: Calculate deterministic scores in Python
+    python_score = calculate_resume_score(clean_resume_text)
+    ats_score    = calculate_ats_score(clean_resume_text)
+
+    # Step 8: Classify resume in Python
+    category = classify_resume(python_score)
+
+    # Step 9: Send structured context to Gemini for JSON response
+    with st.spinner("Analyzing your resume with AI... This may take a moment."):
         try:
             system_prompt  = get_system_prompt()
-            analysis_query = get_roast_prompt(clean_resume_text, category, job_description)
+            analysis_query = get_roast_prompt(
+                structured_resume=structured_resume.to_dict(),
+                category=category,
+                python_score=python_score,
+                ats_score=ats_score,
+                missing_fields=missing_fields,
+                job_description=job_description,
+            )
 
-            ai_response = send_message(
+            ai_raw_response = send_message(
                 system_prompt=system_prompt,
                 user_message=analysis_query,
                 conversation_history=[],
+                json_mode=True,
             )
         except GeminiAPIKeyMissingError:
             st.session_state.error_message = (
@@ -168,30 +187,30 @@ def run_analysis_pipeline(
             st.session_state.error_message = str(e)
             return False
 
-    # Step 8: Parse strict scores from AI response (fallback to local if parse fails)
-    ai_resume_score, ai_ats_score = _extract_ai_scores(
-        ai_response, fallback_resume=local_resume_score, fallback_ats=local_ats_score
+    # Step 10: Parse and validate JSON response
+    analysis_json = parse_and_validate_analysis_json(
+        ai_raw_response, fallback_score=python_score, fallback_ats=ats_score
     )
 
-    # Step 9: Parse overall feedback from AI response
-    overall_feedback = _extract_overall_feedback(ai_response)
-
-    # Step 10: Store everything in session state
+    # Step 11: Store everything in session state
     st.session_state.analysis_done       = True
     st.session_state.resume_text         = clean_resume_text
+    st.session_state.structured_resume   = structured_resume.to_dict()
     st.session_state.job_description     = job_description
-    st.session_state.resume_score        = ai_resume_score
-    st.session_state.ats_score           = ai_ats_score
+    st.session_state.resume_score        = python_score
+    st.session_state.ats_score           = ats_score
     st.session_state.resume_category     = category
-    st.session_state.strengths           = strengths
-    st.session_state.weaknesses          = weaknesses
-    st.session_state.overall_feedback    = overall_feedback
-    st.session_state.missing_fields      = find_missing_fields(clean_resume_text)
+    st.session_state.missing_fields      = missing_fields
+    st.session_state.analysis_json       = analysis_json
     st.session_state.error_message       = None
 
-    # Store initial AI response as first entry in conversation history
+    # Store initial AI JSON response summary as first entry in conversation history
+    initial_summary = (
+        f"{analysis_json.get('first_impression', '')}\n\n"
+        f"**Overall Feedback**: {analysis_json.get('overall_feedback', '')}"
+    )
     st.session_state.conversation_history = [
-        {"role": "model", "content": ai_response}
+        {"role": "model", "content": initial_summary}
     ]
 
     return True
@@ -291,11 +310,22 @@ def handle_user_message(user_message: str) -> None:
     Args:
         user_message: The user's input from the chat box.
     """
-    resume_text = st.session_state.get("resume_text", "")
-    history     = st.session_state.get("conversation_history", [])
+    structured_resume = st.session_state.get("structured_resume", {})
+    python_score      = st.session_state.get("resume_score", 70)
+    ats_score         = st.session_state.get("ats_score", 70)
+    missing_fields    = st.session_state.get("missing_fields", [])
+    job_description   = st.session_state.get("job_description", "")
+    history           = st.session_state.get("conversation_history", [])
 
-    # Build context-aware user message
-    full_user_message = build_resume_context(resume_text, user_message)
+    # Build context-aware single-responsibility user message
+    full_user_message = build_conversation_user_prompt(
+        user_message=user_message,
+        structured_resume=structured_resume,
+        python_score=python_score,
+        ats_score=ats_score,
+        missing_fields=missing_fields,
+        job_description=job_description,
+    )
 
     # Append user message to history
     history.append({"role": "user", "content": user_message})

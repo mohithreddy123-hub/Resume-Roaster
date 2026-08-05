@@ -1,0 +1,170 @@
+================================================================================
+                            RESUME ROASTER - PROJECT DOCUMENTATION
+================================================================================
+
+1. PROJECT OVERVIEW & CORE PURPOSE
+--------------------------------------------------------------------------------
+Resume Roaster is an AI-powered, conversational, witty, and deeply analytical 
+resume review application. 
+
+Core Idea & Philosophy:
+  • "Roasting is the personality. Helping is the purpose."
+  • Evaluates resumes like a 20-year veteran senior recruiter / engineering director.
+  • Provides:
+    1. STRENGTHS: What is genuinely impressive and well-crafted.
+    2. WEAKNESSES & ROASTS: What is weak, vague, or holding the candidate back, 
+       always paired with an immediate fix or solution.
+    3. IMPROVEMENTS & QUESTIONS: Deep, actionable improvements (bullet point 
+       rewrites with metrics, missing skills, section ordering, job description 
+       matching), ending by prompting the user for follow-up questions.
+
+
+2. TECHNOLOGY STACK & DEPENDENCIES
+--------------------------------------------------------------------------------
+  • Frontend & Framework: Streamlit (v1.39.0)
+  • Language: Python 3.12+
+  • AI Model & API: Google Gemini API via `google-generativeai` SDK
+  • Primary AI Model: `gemini-flash-latest` (balanced speed & high quality)
+  • Environment Management: `python-dotenv` (for loading `.env` securely)
+  • File Parsing:
+    - PDF: `pdfplumber` (extracts text accurately across multi-column layouts)
+    - DOCX: `python-docx` (extracts paragraph and table text)
+  • Styling: Custom Vanilla CSS (`static/style.css`) injected into Streamlit
+
+
+3. PROJECT DIRECTORY & FILE STRUCTURE
+--------------------------------------------------------------------------------
+c:\ResumeRoster\
+├── app.py                   # Main Streamlit orchestration & state controller
+├── config.py                # Global settings, model config, retries & weights
+├── .env                     # Local secret file (GEMINI_API_KEY=...) [Git ignored]
+├── .env.example             # Template file for secret keys
+├── .gitignore               # Excludes secrets, venv, and cache files from Git
+├── requirements.txt         # Project dependencies list
+│
+├── llm/                     # LLM Communication Layer
+│   ├── __init__.py
+│   └── gemini.py            # Gemini API wrapper with rate-limit retry logic
+│
+├── parser/                  # Document Parsing Layer
+│   ├── __init__.py
+│   ├── parser.py            # Unified parser entry point (routes PDF vs DOCX)
+│   ├── pdf_parser.py        # PDF text extraction using pdfplumber
+│   └── docx_parser.py       # DOCX text extraction using python-docx
+│
+├── utils/                   # Validation & Text Processing Layer
+│   ├── __init__.py
+│   ├── validator.py         # File & text validation checks (size, length, fields)
+│   ├── cleaner.py           # Text normalization & whitespace cleaning
+│   └── helper.py            # Formatting & display helpers
+│
+├── analyzer/                # Python Baseline Analysis Layer
+│   ├── __init__.py
+│   ├── score.py             # Heuristic resume structure score calculation
+│   ├── ats.py               # Local ATS keyword density estimator
+│   ├── classifier.py        # Quality category classifier (Excellent/Good/Avg/Bad)
+│   ├── strengths.py         # Regex strength extractor
+│   └── weaknesses.py        # Regex weakness extractor
+│
+├── prompts/                 # Prompt Engineering Layer
+│   ├── __init__.py
+│   ├── system_prompt.py     # System Prompt (20-year veteran recruiter persona & rules)
+│   ├── roast_prompt.py      # Initial Analysis Prompt (JD matching & dynamic review)
+│   ├── rewrite_prompt.py    # Follow-up prompt for rewriting specific bullet points
+│   └── skill_prompt.py      # Follow-up prompt for skill gap & learning recommendations
+│
+├── ui/                      # Streamlit UI Component Layer
+│   ├── __init__.py
+│   ├── styles.py            # Custom CSS injection & HTML component renders
+│   ├── upload.py            # Upload card & optional Job Description input
+│   └── dashboard.py         # Score cards & full markdown AI analysis view
+│
+└── static/
+    └── style.css            # Modern dark-mode glassmorphic stylesheet
+
+
+4. DETAILED COMPONENT LOGIC & IMPLEMENTATION
+--------------------------------------------------------------------------------
+
+[A] API Key & Security Logic (.env & llm/gemini.py)
+---------------------------------------------------
+  • The Google Gemini API key is stored strictly in `.env` as `GEMINI_API_KEY`.
+  • `.env` is ignored by `.gitignore` so secrets are never pushed to GitHub.
+  • `llm/gemini.py` uses `load_dotenv(override=True)` to dynamically reload 
+    the API key without requiring server restarts.
+  • Automatic Retry Logic: Handles Google's 429 (`ResourceExhausted`) rate limits 
+    by automatically retrying up to 5 times with exponential backoff delay (4s).
+
+[B] Document Parsing Logic (parser/)
+-----------------------------------
+  • Uploaded files are received as raw bytes in memory (no disk saving needed).
+  • PDF Parser (`pdf_parser.py`): Opens bytes with `pdfplumber`, iterates over 
+    pages, extracts text, strips extra spaces, and checks for empty/image-only PDFs.
+  • DOCX Parser (`docx_parser.py`): Reads document structure using `python-docx`, 
+    extracts text from paragraphs and table cells.
+
+[C] Text Validation & Cleaning Logic (utils/)
+---------------------------------------------
+  • `validator.py`: Checks:
+    1. File size <= 10MB (`MAX_FILE_SIZE_MB`).
+    2. Supported extension (.pdf, .docx).
+    3. Minimum word count (at least 50 words).
+    4. Essential fields detection (email, phone, contact info).
+  • `cleaner.py`: Normalizes quotes, removes control characters, collapses 
+    multiple spaces/newlines while preserving paragraph structure.
+
+[D] Baseline Score & Quality Classification (analyzer/)
+-------------------------------------------------------
+  • `score.py`: Computes a baseline structural score based on section presence, 
+    contact info completeness, tech keyword count, and action verb density.
+  • `classifier.py`: Maps the baseline score into 4 internal tone categories:
+    - Excellent (80–100) -> Respectful tone, executive polish.
+    - Good (70–79) -> Friendly, light sarcasm, targeted tweaks.
+    - Average (50–69) -> Direct 20-year recruiter tone, sharp sarcasm.
+    - Bad (<50) -> Unfiltered directness, step-by-step turnaround plan.
+
+[E] AI Persona & Prompt Engineering (prompts/)
+----------------------------------------------
+  • `system_prompt.py`: Injects the core persona:
+    - "Senior-most 20-year-experience recruiter & engineering director."
+    - Enforces ChatGPT / Claude / Grok level rigor: NEVER holds back feedback 
+      even on high-scoring resumes.
+    - Every roast MUST include an immediate, actionable solution.
+  • `roast_prompt.py`: Builds the prompt sent to Gemini:
+    - Injects cleaned resume text.
+    - Injects optional target Job Description if provided by the user.
+    - Instructs the AI to evaluate Strengths, Weaknesses/Roasts, Bullet Point Audits, 
+      Skill Gaps, and Overall Turnaround Strategy dynamically.
+
+[F] AI Score Extraction & Display Logic (app.py & ui/dashboard.py)
+------------------------------------------------------------------
+  • In `app.py`, after Gemini returns the markdown analysis:
+    - `_extract_ai_scores()` uses regex (`Resume\s+Score:\s*(\d+)`) to extract the 
+      AI-generated scores directly from the text.
+    - These strict AI scores are saved to `st.session_state` and rendered in the 
+      dual Score Cards (`ui/styles.py`).
+  • `ui/dashboard.py` renders `st.session_state.conversation_history[0]['content']` 
+    in a glassmorphic container, ensuring 100% of the AI's rich markdown analysis 
+    (Strengths, Weaknesses, Bullet Audits, Skill Gaps, Questions) is displayed.
+
+[G] Interactive Follow-Up Chat (app.py)
+---------------------------------------
+  • Users can type follow-up questions in the chat box at the bottom of the dashboard.
+  • `handle_user_message()` sends:
+    - System prompt
+    - Full resume text context
+    - Complete past conversation history
+    - New user question
+  • Enables interactive follow-ups like "Rewrite my project section", "Suggest skills for AWS", or "Fix my summary".
+
+
+5. SUMMARY OF WORKFLOW
+--------------------------------------------------------------------------------
+  1. User drops PDF/DOCX resume + (optional) Job Description -> Clicks "Analyze Resume".
+  2. Python validates and extracts raw text in memory.
+  3. Python cleans text and runs baseline classification.
+  4. System prompt + Roast prompt sent to Gemini API (`gemini-flash-latest`).
+  5. Gemini returns deep analysis (Scores, Strengths, Weaknesses, Bullet Audit, Skill Gaps).
+  6. `app.py` parses AI scores for score cards and renders full markdown on Dashboard.
+  7. User reads analysis and engages in interactive follow-up Q&A.
+================================================================================
