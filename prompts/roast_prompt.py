@@ -15,25 +15,39 @@ from config import (
 )
 
 
-def get_roast_prompt(resume_text: str, category: str) -> str:
+def get_roast_prompt(
+    resume_text: str, category: str, job_description: str = ""
+) -> str:
     """
-    Build the initial analysis prompt based on resume text and category.
+    Build the initial analysis prompt based on resume text, category, and optional target Job Description.
 
     Args:
-        resume_text: The cleaned resume text.
-        category:    Internal category — Excellent / Good / Average / Bad.
+        resume_text:     The cleaned resume text.
+        category:        Internal category — Excellent / Good / Average / Bad.
+        job_description: Optional target Job Description text.
 
     Returns:
         A complete prompt string ready to be sent to Gemini.
     """
     tone_instruction = _get_tone_instruction(category)
 
+    jd_block = ""
+    if job_description.strip():
+        jd_block = f"""
+## TARGET JOB DESCRIPTION
+{job_description.strip()}
+
+CRITICAL INSTRUCTION FOR SCORING:
+Evaluate the resume SPECIFICALLY against this Job Description.
+Score match, keyword alignment, required experience, and skill fit for this specific position.
+"""
+
     return f"""
 You are performing the INITIAL ANALYSIS of the following resume.
 
 ## RESUME CONTENT
 {resume_text}
-
+{jd_block}
 ## INTERNAL QUALITY CATEGORY (for your tone only — DO NOT reveal this to the user)
 Category: {category}
 
@@ -41,39 +55,41 @@ Category: {category}
 {tone_instruction}
 
 ## YOUR TASK
-Analyze the resume and respond in this EXACT structure. Use markdown formatting.
+Analyze the resume deeply as a 20-year veteran recruiter and respond in this EXACT structure. Use markdown formatting.
 
 ---
 
 **Resume Score: [X]/100**
-[One sentence explaining the score honestly]
+[One sentence explaining the score honestly based on candidate quality and role fit]
 
 **ATS Score: [X]/100** *(estimated)*
-[One sentence on why this ATS score was given]
+[One sentence on why this ATS score was given based on formatting, parsing, and keywords]
 
 **Strengths**
 List 3–8 genuine strengths. Only include real strengths that exist in the resume.
 Format each as: • [Strength]: [brief explanation]
 
-**Weaknesses**
-List meaningful weaknesses. For each, explain WHY it is weak.
-Format each as: • [Weakness]: [why it's weak]
+**Weaknesses & Roasts**
+List meaningful weaknesses. For each, explain WHY it is weak and give an immediate 1-sentence fix.
+Format each as: • [Weakness]: [why it's weak] → *Fix: [how to improve it]*
 {_get_roast_style(category)}
 
+**Skill Analysis & Suggestions**
+• **Skills to Keep/Highlight**: [List 3–5 of the candidate's strongest relevant skills]
+• **Missing / Recommended Skills**: [List 3–5 critical market or JD skills missing from the resume, e.g. Docker, CI/CD, specific frameworks]
+• **Project & Skill Alignment**: [Point out any technologies mentioned in projects that were omitted from the Skills section, or vice versa]
+
 **Overall Feedback**
-Write 3–5 lines summarizing the resume quality honestly.
+Write 3–5 lines summarizing the resume quality honestly like a veteran recruiter.
 {_get_feedback_guide(category)}
 
 ---
 
 IMPORTANT RULES:
-- Scores must reflect actual quality. Never make them up.
-- Do NOT add sections like "Suggestions", "Roadmap", or "Improvements" yet.
-- Do NOT offer to rewrite anything automatically.
+- Assign honest, realistic scores ([X] MUST be an integer between 0 and 100). Do not default to high scores unless earned.
 - Do NOT reveal the internal category label.
 - After your response, STOP. The user will ask follow-up questions.
 - Vary your language. Do not repeat the same roast sentence twice.
-- Every weakness must be followed by a brief hint (1 sentence) on how to fix it.
 """.strip()
 
 
