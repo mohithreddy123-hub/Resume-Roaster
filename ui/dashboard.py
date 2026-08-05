@@ -22,7 +22,7 @@ from ui.styles import (
 def render_analysis_results() -> None:
     """
     Render category-driven conversational resume review results.
-    Progressively discloses information based on internal category classification.
+    Renders First Reaction, Recruiter Opinion, Key Roasts & Fixes, and Curiosity Questions.
     """
     resume_score   = st.session_state.get("resume_score", 0)
     ats_score      = st.session_state.get("ats_score", 0)
@@ -36,13 +36,20 @@ def render_analysis_results() -> None:
 
     render_section_header("🔥 Senior Recruiter Resume Review")
 
-    # 2. Handle AWAITING MISSING INFO State (Bad / Sparse Resumes)
+    # 2. First Reaction Banner (The Spontaneous Recruiter Opening)
+    first_reaction = analysis_json.get("first_reaction", "")
+    if first_reaction:
+        st.markdown(
+            f'<div class="rr-feedback-card rr-animate" style="border-left: 4px solid #f39c12; background: rgba(243, 156, 18, 0.08); padding: 16px; margin-bottom: 20px;">'
+            f'<span style="font-size: 1.2rem; font-weight: 700; color: #f39c12;">💬 First Reaction:</span><br/>'
+            f'<i style="font-size: 1.05rem;">"{first_reaction}"</i>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+
+    # 3. Handle AWAITING MISSING INFO State (Bad / Sparse Resumes)
     if stage == "AWAITING_MISSING_INFO" or category == "Bad":
         st.warning("⚠️ **Analysis Paused: Missing Critical Resume Information**")
-        first_imp = analysis_json.get("first_impression", "")
-        if first_imp:
-            st.info(f"**First Impression**: {first_imp}")
-
         questions = analysis_json.get("missing_info_questions", [])
         if questions:
             st.markdown("### ❓ Please reply with the following details in the chat below:")
@@ -54,7 +61,7 @@ def render_analysis_results() -> None:
         render_divider()
         return
 
-    # 3. Category Breakdown Metrics (Mathematical source of truth)
+    # 4. Category Breakdown Metrics (Mathematical source of truth)
     ratings = analysis_json.get("category_ratings", {})
     if ratings:
         st.markdown("### 📊 Category Breakdown")
@@ -69,75 +76,48 @@ def render_analysis_results() -> None:
             st.metric("Placement Readiness", f"{ratings.get('placement_readiness', 7)}/10")
             st.metric("FAANG Readiness", f"{ratings.get('faang_readiness', 6)}/10")
 
-    # 4. First Impression
-    first_imp = analysis_json.get("first_impression", "")
-    if first_imp:
-        st.info(f"**First Impression**: {first_imp}")
+    # 5. Recruiter Opinion & Assessment
+    opinion = analysis_json.get("recruiter_opinion", analysis_json.get("first_impression", ""))
+    if opinion:
+        st.info(f"**Recruiter Assessment**: {opinion}")
 
-    # 5. Render Output Specifically Based on Quality Category
-    if category == "Excellent":
-        strengths = analysis_json.get("strengths", [])
-        if strengths:
-            st.markdown("### ⭐ Key Strengths")
-            for item in strengths:
-                if isinstance(item, dict):
-                    st.markdown(f"• **{item.get('title', 'Strength')}**: {item.get('explanation', '')}")
-                else:
-                    st.markdown(f"• {item}")
+    # 6. Key Strengths (if present)
+    strengths = analysis_json.get("strengths", [])
+    if strengths:
+        st.markdown("### ⭐ Key Strengths")
+        for item in strengths:
+            if isinstance(item, dict):
+                st.markdown(f"• **{item.get('title', 'Strength')}**: {item.get('explanation', '')}")
+            else:
+                st.markdown(f"• {item}")
 
-        weaknesses = analysis_json.get("weaknesses", [])
-        if weaknesses:
-            st.markdown("### 🔍 Executive Polish Points")
-            for item in weaknesses:
-                if isinstance(item, dict):
-                    st.markdown(f"• **{item.get('issue', 'Polish')}**: {item.get('fix', '')}")
-                else:
-                    st.markdown(f"• {item}")
+    # 7. Key Roasts & Immediate Solutions
+    roasts = analysis_json.get("key_roasts_and_fixes", analysis_json.get("roasts_and_solutions", analysis_json.get("weaknesses", [])))
+    if roasts:
+        st.markdown("### 🔥 Recruiter Roasts & Solutions")
+        for item in roasts:
+            if isinstance(item, dict):
+                roast_text = item.get("roast", item.get("why", ""))
+                sol_text = item.get("solution", item.get("fix", ""))
+                st.markdown(
+                    f"• **{item.get('issue', 'Section')}**: {roast_text}\n"
+                    f"  👉 *Immediate Fix*: **{sol_text}**"
+                )
+            else:
+                st.markdown(f"• {item}")
 
-    elif category == "Good":
-        strengths = analysis_json.get("strengths", [])
-        if strengths:
-            st.markdown("### ⭐ Key Strengths")
-            for item in strengths:
-                if isinstance(item, dict):
-                    st.markdown(f"• **{item.get('title', 'Strength')}**: {item.get('explanation', '')}")
-                else:
-                    st.markdown(f"• {item}")
+    # 8. Curiosity Challenge Box (Recruiter Questioning Unverified Claims)
+    curiosity = analysis_json.get("curiosity_question", "")
+    if curiosity:
+        st.markdown(
+            f'<div style="border: 1px solid #3498db; background: rgba(52, 152, 219, 0.08); padding: 14px; border-radius: 8px; margin: 15px 0;">'
+            f'<strong style="color: #3498db;">🧐 Recruiter Curiosity Check:</strong><br/>'
+            f'"{curiosity}"'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
 
-        weaknesses = analysis_json.get("weaknesses", [])
-        if weaknesses:
-            st.markdown("### 🔥 Light Roasts & Weaknesses")
-            for item in weaknesses:
-                if isinstance(item, dict):
-                    st.markdown(
-                        f"• **{item.get('issue', 'Issue')}**: {item.get('why', '')}\n"
-                        f"  👉 *Fix*: {item.get('fix', '')}"
-                    )
-                else:
-                    st.markdown(f"• {item}")
-
-        improvements = analysis_json.get("key_improvements", [])
-        if improvements:
-            st.markdown("### ✍️ Specific Recommended Improvements")
-            for imp in improvements:
-                st.markdown(f"• {imp}")
-
-    elif category == "Average":
-        roasts = analysis_json.get("roasts_and_solutions", [])
-        if roasts:
-            st.markdown("### 🔥 Direct Recruiter Roasts & Solutions")
-            for item in roasts:
-                if isinstance(item, dict):
-                    st.markdown(
-                        f"• **{item.get('issue', 'Roast')}**: {item.get('why', '')}\n"
-                        f"  👉 *Immediate Fix*: **{item.get('solution', '')}**"
-                    )
-
-    # 6. Overall Feedback & Closing Question
-    overall = analysis_json.get("overall_feedback", "")
-    if overall:
-        st.success(f"**Recruiter Verdict**: {overall}")
-
+    # 9. Closing Conversational Prompt
     closing_q = analysis_json.get("closing_question", "Ask me to rewrite any section, suggest skills, or improve bullet points!")
     st.markdown(f"💡 **{closing_q}**")
 
