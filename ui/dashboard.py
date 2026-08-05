@@ -23,31 +23,27 @@ def render_analysis_results() -> None:
     """
     Render the full resume analysis results from session state.
 
-    Reads from:
-        st.session_state.resume_score
-        st.session_state.ats_score
-        st.session_state.strengths
-        st.session_state.weaknesses
-        st.session_state.overall_feedback
+    Displays:
+        - Score Cards (Resume Score + ATS Score)
+        - Full AI-powered Analysis (First Impression, Strengths, Weaknesses, Line-by-Line Audit, Skill Gaps)
     """
     resume_score = st.session_state.get("resume_score", 0)
     ats_score    = st.session_state.get("ats_score", 0)
-    strengths    = st.session_state.get("strengths", [])
-    weaknesses   = st.session_state.get("weaknesses", [])
-    feedback     = st.session_state.get("overall_feedback", "")
+    history      = st.session_state.get("conversation_history", [])
 
     # Score Cards
     render_score_cards(resume_score, ats_score)
 
-    # Strengths
-    render_strengths(strengths)
+    render_section_header("🔥 Senior Recruiter Resume Review")
 
-    # Weaknesses
-    render_weaknesses(weaknesses)
-
-    # Overall Feedback
-    if feedback:
-        render_overall_feedback(feedback)
+    # Render initial AI analysis (first item in conversation history)
+    if history:
+        initial_analysis = history[0].get("content", "")
+        if initial_analysis:
+            st.markdown(
+                f'<div class="rr-feedback-card rr-animate">{initial_analysis}</div>',
+                unsafe_allow_html=True,
+            )
 
     render_divider()
 
