@@ -37,13 +37,15 @@ def get_roast_prompt(
 ## TARGET JOB DESCRIPTION
 {job_description.strip()}
 
-CRITICAL INSTRUCTION FOR SCORING:
+CRITICAL INSTRUCTION FOR SCORING & MATCHING:
 Evaluate the resume SPECIFICALLY against this Job Description.
 Score match, keyword alignment, required experience, and skill fit for this specific position.
+Highlight missing tools or requirements from this Job Description.
 """
 
     return f"""
-You are performing the INITIAL ANALYSIS of the following resume.
+You are performing an EXHAUSTIVE INITIAL ANALYSIS of the following resume.
+Act with the rigor and detail of top AI models (ChatGPT, Claude, Grok) and the authority of a 20-year veteran recruiter.
 
 ## RESUME CONTENT
 {resume_text}
@@ -55,7 +57,7 @@ Category: {category}
 {tone_instruction}
 
 ## YOUR TASK
-Analyze the resume deeply as a 20-year veteran recruiter and respond in this EXACT structure. Use markdown formatting.
+Analyze the resume thoroughly and respond in this EXACT structure. Use markdown formatting. Do NOT hold back on any section.
 
 ---
 
@@ -65,31 +67,40 @@ Analyze the resume deeply as a 20-year veteran recruiter and respond in this EXA
 **ATS Score: [X]/100** *(estimated)*
 [One sentence on why this ATS score was given based on formatting, parsing, and keywords]
 
+**First Impression & Executive Summary**
+[2–3 sentences giving a high-level recruiter perception of the candidate]
+
 **Strengths**
-List 3–8 genuine strengths. Only include real strengths that exist in the resume.
+List 3–6 genuine strengths. Only include real achievements and well-written sections.
 Format each as: • [Strength]: [brief explanation]
 
-**Weaknesses & Roasts**
-List meaningful weaknesses. For each, explain WHY it is weak and give an immediate 1-sentence fix.
-Format each as: • [Weakness]: [why it's weak] → *Fix: [how to improve it]*
-{_get_roast_style(category)}
+**Weaknesses, Red Flags & Bad Placements**
+List 3–6 critical weaknesses or poor section placements (even if the resume is good!). Explain WHY each is a problem.
+Format each as: • [Weakness/Red Flag]: [why it's problematic] → *Fix: [how to fix it]*
 
-**Skill Analysis & Suggestions**
+**Line-by-Line Bullet Point Audit**
+Identify 2–4 specific weak or vague bullet points from the resume. Quote them directly and show how to rewrite them with metrics.
+Format each as:
+• **Original Bullet**: "[quote weak bullet from resume]"
+  • **Problem**: [vague language, missing metrics, weak verb, etc.]
+  • **Better Version**: "[suggested strong rewritten bullet with metrics/impact]"
+
+**Skill Depth & Market Alignment**
 • **Skills to Keep/Highlight**: [List 3–5 of the candidate's strongest relevant skills]
-• **Missing / Recommended Skills**: [List 3–5 critical market or JD skills missing from the resume, e.g. Docker, CI/CD, specific frameworks]
-• **Project & Skill Alignment**: [Point out any technologies mentioned in projects that were omitted from the Skills section, or vice versa]
+• **Missing / Recommended Skills**: [List 3–5 critical market or JD skills missing from the resume, e.g. Docker, CI/CD, AWS, specific frameworks]
+• **Project & Skill Alignment**: [Point out technologies mentioned in projects that were omitted from the Skills section, or vice versa]
 
 **Overall Feedback**
-Write 3–5 lines summarizing the resume quality honestly like a veteran recruiter.
+Write 3–5 lines summarizing the turnaround strategy for this candidate.
 {_get_feedback_guide(category)}
 
 ---
 
 IMPORTANT RULES:
 - Assign honest, realistic scores ([X] MUST be an integer between 0 and 100). Do not default to high scores unless earned.
+- NEVER skip the Weaknesses or Line-by-Line Audit sections, even if the resume scores above 80/100!
 - Do NOT reveal the internal category label.
 - After your response, STOP. The user will ask follow-up questions.
-- Vary your language. Do not repeat the same roast sentence twice.
 """.strip()
 
 
@@ -97,26 +108,21 @@ def _get_tone_instruction(category: str) -> str:
     """Return tone-specific instructions based on category."""
     instructions = {
         CATEGORY_EXCELLENT: (
-            "Be respectful and professional. This is a strong resume. "
-            "Acknowledge genuine quality. Point out only real, specific improvements. "
-            "Do NOT roast unnecessarily. Keep tone encouraging but honest."
+            "This is a strong resume, but do NOT hold back. Focus on executive polish, "
+            "missing quantifiable metrics, high-impact phrasing, and top-tier market standards. "
+            "Even strong resumes have weak bullet points — find them and fix them."
         ),
         CATEGORY_GOOD: (
-            "Use light humor where appropriate. This resume is above average but has gaps. "
-            "Be honest about weak spots without being harsh. "
-            "Feel like a smart friend giving honest feedback — not an HR chatbot."
+            "Use direct feedback with sharp humor. Point out weak spots, missing metrics, "
+            "and missing skills without holding back. Treat them like a candidate who has potential but is sloppy."
         ),
         CATEGORY_AVERAGE: (
-            "Be direct with mild sarcasm. This is the core Resume Roaster experience. "
-            "Point out weaknesses clearly and memorably. "
-            "Do NOT be rude or attack the person. Roast the resume content. "
-            "Every roast must immediately include a useful suggestion."
+            "Be direct with sharp recruiter sarcasm. Point out weaknesses clearly and memorably. "
+            "Expose vague descriptions, bad section layout, and missing core skills."
         ),
         CATEGORY_BAD: (
-            "Be honest and more direct. This resume needs serious work. "
-            "Do not soften the feedback unnecessarily, but NEVER be offensive or toxic. "
-            "Be like a mentor who is frustrated but still wants the person to succeed. "
-            "Stronger roasting is allowed, but every criticism must include a fix."
+            "Unfiltered directness. This resume needs serious work. Roast terrible formatting and lack of depth, "
+            "providing an immediate step-by-step turnaround plan."
         ),
     }
     return instructions.get(category, instructions[CATEGORY_AVERAGE])
@@ -126,25 +132,16 @@ def _get_roast_style(category: str) -> str:
     """Return weakness formatting guidance based on category."""
     styles = {
         CATEGORY_EXCELLENT: (
-            "Minor improvements only. Keep feedback constructive and specific."
+            "Focus on executive impact, metric precision, and high-tier competitive positioning."
         ),
         CATEGORY_GOOD: (
-            "Mention weaknesses with light humor. Example: "
-            "'Your project descriptions are decent, but some leave recruiters guessing what you actually built.'"
+            "Mention weaknesses with directness and sharp humor."
         ),
         CATEGORY_AVERAGE: (
-            "Use direct, memorable language. Examples:\n"
-            "  - 'This project description tells me almost nothing.'\n"
-            "  - 'If I were a recruiter, I'd still have no idea what you built.'\n"
-            "  - 'This bullet point is so vague it could describe anything.'\n"
-            "Vary the language. Never repeat the same sentence."
+            "Use direct, memorable language calling out vague bullets and missing impact."
         ),
         CATEGORY_BAD: (
-            "Be more aggressive but never offensive. Examples:\n"
-            "  - 'This resume is hiding your abilities instead of showing them.'\n"
-            "  - 'Right now this section is doing more harm than good.'\n"
-            "  - 'This description gives recruiters zero reason to call you.'\n"
-            "Always follow every criticism with a clear fix."
+            "Be aggressive on weak structure and lack of metrics, followed by immediate fixes."
         ),
     }
     return styles.get(category, styles[CATEGORY_AVERAGE])
@@ -154,21 +151,20 @@ def _get_feedback_guide(category: str) -> str:
     """Return overall feedback tone guide based on category."""
     guides = {
         CATEGORY_EXCELLENT: (
-            "Example tone: 'This is a strong resume. Projects are well-explained and skills are relevant. "
-            "Minor improvements can make it even better.'"
+            "Example tone: 'This is a strong resume foundation. Fine-tuning the bullet points with metrics "
+            "and highlighting your core architectural skills will push this into top 1% territory.'"
         ),
         CATEGORY_GOOD: (
-            "Example tone: 'This resume is above average but still has room to grow. "
-            "A few targeted improvements would make it stand out.'"
+            "Example tone: 'This resume is decent but currently leaves recruiters with questions. "
+            "Implementing the line-by-line bullet rewrites will make it stand out immediately.'"
         ),
         CATEGORY_AVERAGE: (
-            "Example tone: 'This resume has potential, but right now it isn't showcasing "
-            "your abilities effectively. The pieces are here — they just need better presentation.'"
+            "Example tone: 'This resume has potential, but right now it isn't showcasing your abilities effectively. "
+            "Follow the bullet point rewrites and add the missing technical skills.'"
         ),
         CATEGORY_BAD: (
-            "Example tone: 'This resume needs serious work before you start applying. "
-            "Right now it is hiding your abilities instead of showcasing them. "
-            "The good news: these problems are fixable.'"
+            "Example tone: 'This resume needs serious work before applying. "
+            "Follow the turnaround plan to rebuild your project descriptions and skills section.'"
         ),
     }
     return guides.get(category, guides[CATEGORY_AVERAGE])
