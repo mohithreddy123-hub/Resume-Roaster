@@ -18,22 +18,33 @@ from config import (
 )
 
 
-def classify_resume(score: int) -> str:
+def classify_resume(score: int, missing_fields: list[str] | None = None) -> str:
     """
-    Classify a resume into an internal category based on its score.
+    Classify a resume into an internal category based on score and missing fields.
 
-    Categories (internal only — never shown as badges):
-        Excellent  → score >= 80   (Very strong resume)
-        Good       → score >= 60   (Above average, needs minor improvements)
-        Average    → score >= 40   (Has several weaknesses, needs improvement)
-        Bad        → score < 40    (Missing key info, weak projects, poor presentation)
+    Categories:
+        Excellent  → score >= 80 and no critical fields missing
+        Good       → score >= 65 and minimal missing fields
+        Average    → score >= 50
+        Bad        → score < 50 or critical contact/education/project fields missing
 
     Args:
-        score: The overall resume score (0–100) from calculate_resume_score().
+        score: The overall resume score (0–100).
+        missing_fields: Optional list of missing field strings.
 
     Returns:
         One of: "Excellent", "Good", "Average", "Bad"
     """
+    missing = missing_fields or []
+    critical_missing = [
+        m for m in missing
+        if m in ("Email Address", "Phone Number", "Education Section", "Projects Section", "Technical Skills Section")
+    ]
+
+    # If critical structural sections are missing, classify as Bad to ask missing info questions
+    if len(critical_missing) >= 2 or ("Education Section" in missing and "Projects Section" in missing):
+        return CATEGORY_BAD
+
     if score >= SCORE_THRESHOLDS[CATEGORY_EXCELLENT]:
         return CATEGORY_EXCELLENT
     elif score >= SCORE_THRESHOLDS[CATEGORY_GOOD]:

@@ -49,7 +49,7 @@ def calculate_resume_score(resume_text: str) -> int:
     # Formatting score (5%)
     scores["formatting"] = _score_formatting(resume_text)
 
-    # Grammar/readability score (5%)
+    # Grammar score (5%)
     scores["grammar"] = _score_grammar(resume_text)
 
     # Weighted total
@@ -59,6 +59,55 @@ def calculate_resume_score(resume_text: str) -> int:
     )
 
     return max(0, min(100, round(total)))
+
+
+def calculate_complete_metrics(resume_text: str, structured_resume: dict) -> dict:
+    """
+    Calculate unified mathematical metrics for the entire resume.
+    Ensures 100% mathematical consistency across Resume Score, ATS Score,
+    and Sub-Category Ratings (1-10).
+
+    Returns:
+        dict containing:
+            - resume_score: int (0-100)
+            - ats_score: int (0-100)
+            - category_ratings: dict of ratings (1-10)
+    """
+    from analyzer.ats import calculate_ats_score
+
+    resume_score = calculate_resume_score(resume_text)
+    ats_score    = calculate_ats_score(resume_text)
+
+    # Sub-category ratings (scale 1-10, derived mathematically from sub-scores)
+    header_score = _score_header(resume_text)
+    proj_score   = _score_projects(resume_text)
+    skills_score = _score_skills(resume_text)
+    edu_score    = _score_education(resume_text)
+    exp_score    = _score_experience(resume_text)
+    grammar_score= _score_grammar(resume_text)
+
+    summary_text = structured_resume.get("summary", "")
+    summary_rating = 8 if len(summary_text) > 40 else (5 if summary_text else 3)
+
+    ats_rating        = max(1, min(10, round(ats_score / 10)))
+    project_rating    = max(1, min(10, round(proj_score / 10)))
+    skills_rating     = max(1, min(10, round(skills_score / 10)))
+    summary_rating    = max(1, min(10, round(summary_rating)))
+    placement_rating  = max(1, min(10, round((proj_score * 0.4 + skills_score * 0.4 + edu_score * 0.2) / 10)))
+    faang_rating      = max(1, min(10, round((proj_score * 0.5 + skills_score * 0.3 + exp_score * 0.2) / 10)))
+
+    return {
+        "resume_score": resume_score,
+        "ats_score": ats_score,
+        "category_ratings": {
+            "ats_friendliness": ats_rating,
+            "project_quality": project_rating,
+            "technical_skills": skills_rating,
+            "professional_summary": summary_rating,
+            "placement_readiness": placement_rating,
+            "faang_readiness": faang_rating,
+        }
+    }
 
 
 def _score_header(text: str) -> float:

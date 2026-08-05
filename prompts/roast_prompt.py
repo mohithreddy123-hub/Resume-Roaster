@@ -41,7 +41,7 @@ def get_roast_prompt(
         A complete JSON-formatted prompt string for Gemini.
     """
     tone_instruction = _get_tone_instruction(category)
-    json_instructions = get_json_schema_instructions()
+    json_instructions = get_json_schema_instructions(category)
 
     jd_block = ""
     if job_description.strip():
@@ -52,15 +52,15 @@ def get_roast_prompt(
         missing_block = f"\nMISSING CRITICAL FIELDS DETECTED BY PYTHON:\n- " + "\n- ".join(missing_fields) + "\n"
 
     return f"""
-You are performing an EXHAUSTIVE INITIAL ANALYSIS of the candidate's resume.
-Act with the rigor and analytical depth of top AI models (ChatGPT, Claude, Grok) and the personality of a 20-year veteran recruiter.
+You are performing an INITIAL RECRUITER REVIEW of the candidate's resume.
+Act with the authority and keen eye of a 20-year veteran recruiter / senior engineering director.
 
-DETERMINISTIC SCORE BASELINES (COMPUTED BY PYTHON):
-- Baseline Resume Score: {python_score}/100
-- Baseline ATS Score: {ats_score}/100
-- Quality Category: {category}
+QUALITY CATEGORY BASELINE (COMPUTED BY PYTHON):
+- Category: {category}
+- Deterministic Resume Score: {python_score}/100
+- Deterministic ATS Score: {ats_score}/100
 {missing_block}{jd_block}
-EXTRACTED RESUME SECTIONS:
+EXTRACTED RESUME CONTENT:
 - Header: {structured_resume.get('header', '')}
 - Summary: {structured_resume.get('summary', '')}
 - Education: {structured_resume.get('education', '')}
@@ -69,7 +69,11 @@ EXTRACTED RESUME SECTIONS:
 - Skills: {structured_resume.get('skills', '')}
 - Certifications: {structured_resume.get('certifications', '')}
 
-TONE & BEHAVIOR INSTRUCTION:
+CRITICAL CONTENT REFERENCING RULE:
+You MUST reference ACTUAL project names, specific technology combinations, or specific bullet points from the resume above (e.g., "You used FastAPI and Docker together in your SaaS Platform project...").
+NEVER output generic boilerplate feedback like "Good technical skills" or "Improve descriptions".
+
+TONE INSTRUCTION FOR {category.upper()}:
 {tone_instruction}
 
 {json_instructions}

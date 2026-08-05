@@ -151,25 +151,35 @@ def run_analysis_pipeline(
     # Step 6: Detect missing fields in Python
     missing_fields = find_missing_fields(clean_resume_text)
 
-    # Step 7: Calculate deterministic scores in Python
-    python_score = calculate_resume_score(clean_resume_text)
-    ats_score    = calculate_ats_score(clean_resume_text)
+    # Step 7: Unified mathematical score calculation in Python
+    from analyzer.score import calculate_complete_metrics
+    metrics = calculate_complete_metrics(clean_resume_text, structured_resume.to_dict())
+    python_score = metrics["resume_score"]
+    ats_score    = metrics["ats_score"]
+    category_ratings = metrics["category_ratings"]
 
-    # Step 8: Classify resume in Python
-    category = classify_resume(python_score)
+    # Step 8: Classify resume in Python (considering missing fields)
+    category = classify_resume(python_score, missing_fields)
 
-    # Step 9: Send structured context to Gemini for JSON response
+    # Step 9: Handle Conversational Branching
     with st.spinner("Analyzing your resume with AI... This may take a moment."):
         try:
-            system_prompt  = get_system_prompt()
-            analysis_query = get_roast_prompt(
-                structured_resume=structured_resume.to_dict(),
-                category=category,
-                python_score=python_score,
-                ats_score=ats_score,
-                missing_fields=missing_fields,
-                job_description=job_description,
-            )
+            system_prompt = get_system_prompt()
+
+            if category == CATEGORY_BAD or len(missing_fields) >= 3:
+                from prompts.missing_prompt import get_missing_info_prompt
+                analysis_query = get_missing_info_prompt(missing_fields, structured_resume.to_dict())
+                conversation_stage = "AWAITING_MISSING_INFO"
+            else:
+                analysis_query = get_roast_prompt(
+                    structured_resume=structured_resume.to_dict(),
+                    category=category,
+                    python_score=python_score,
+                    ats_score=ats_score,
+                    missing_fields=missing_fields,
+                    job_description=job_description,
+                )
+                conversation_stage = "INITIAL_REVIEW"
 
             ai_raw_response = send_message(
                 system_prompt=system_prompt,
@@ -189,11 +199,14 @@ def run_analysis_pipeline(
 
     # Step 10: Parse and validate JSON response
     analysis_json = parse_and_validate_analysis_json(
-        ai_raw_response, fallback_score=python_score, fallback_ats=ats_score
+        ai_raw_response, category=category, fallback_score=python_score, fallback_ats=ats_score
     )
+    # Ensure category ratings come 100% from Python calculation
+    analysis_json["category_ratings"] = category_ratings
 
     # Step 11: Store everything in session state
     st.session_state.analysis_done       = True
+    st.session_state.conversation_stage  = conversation_stage
     st.session_state.resume_text         = clean_resume_text
     st.session_state.structured_resume   = structured_resume.to_dict()
     st.session_state.job_description     = job_description
@@ -204,11 +217,7 @@ def run_analysis_pipeline(
     st.session_state.analysis_json       = analysis_json
     st.session_state.error_message       = None
 
-    # Store initial AI JSON response summary as first entry in conversation history
-    initial_summary = (
-        f"{analysis_json.get('first_impression', '')}\n\n"
-        f"**Overall Feedback**: {analysis_json.get('overall_feedback', '')}"
-    )
+    initial_summary = analysis_json.get("first_impression", "Resume review started.")
     st.session_state.conversation_history = [
         {"role": "model", "content": initial_summary}
     ]
