@@ -1,2 +1,472 @@
-# static/style.css
-# Main stylesheet — will be fully built in Part 3
+/* =============================================================
+   Resume Roaster — Main Stylesheet
+   Dark mode, minimal, modern, premium design
+   Font: Inter (Google Fonts)
+   ============================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+/* ── Root Variables ─────────────────────────────────────────── */
+:root {
+  --bg-primary:      #0a0a0f;
+  --bg-secondary:    #12121a;
+  --bg-card:         #16161f;
+  --bg-hover:        #1c1c28;
+  --border:          #2a2a3a;
+  --border-glow:     #3d3d5c;
+
+  --accent-primary:  #7c6af7;
+  --accent-hover:    #9b8cfb;
+  --accent-glow:     rgba(124, 106, 247, 0.15);
+
+  --green:           #22c55e;
+  --green-bg:        rgba(34, 197, 94, 0.08);
+  --green-border:    rgba(34, 197, 94, 0.25);
+
+  --amber:           #f59e0b;
+  --amber-bg:        rgba(245, 158, 11, 0.08);
+  --amber-border:    rgba(245, 158, 11, 0.25);
+
+  --red:             #ef4444;
+  --red-bg:          rgba(239, 68, 68, 0.08);
+
+  --text-primary:    #f0f0f8;
+  --text-secondary:  #9090b0;
+  --text-muted:      #5a5a7a;
+
+  --font:            'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --radius:          12px;
+  --radius-sm:       8px;
+  --radius-lg:       16px;
+  --transition:      all 0.2s ease;
+}
+
+/* ── Global Reset ───────────────────────────────────────────── */
+html, body, [class*="css"] {
+  font-family: var(--font) !important;
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+}
+
+.stApp {
+  background-color: var(--bg-primary) !important;
+}
+
+/* ── Hide Streamlit Chrome ─────────────────────────────────── */
+#MainMenu { visibility: hidden; }
+footer    { visibility: hidden; }
+header    { visibility: hidden; }
+.stDeployButton { display: none; }
+
+/* ── Main Container ─────────────────────────────────────────── */
+.block-container {
+  max-width: 820px !important;
+  padding: 2rem 1.5rem !important;
+  margin: 0 auto !important;
+}
+
+/* ── Landing Header ─────────────────────────────────────────── */
+.rr-hero {
+  text-align: center;
+  padding: 3rem 0 2.5rem;
+}
+
+.rr-logo {
+  font-size: 3.5rem;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+
+.rr-title {
+  font-size: 2.8rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, #f0f0f8 0%, #9090b0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
+  line-height: 1.1;
+}
+
+.rr-subtitle {
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+  margin-top: 0.75rem;
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+/* ── Upload Card ─────────────────────────────────────────────── */
+.rr-upload-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  margin-top: 2rem;
+  transition: var(--transition);
+}
+
+.rr-upload-card:hover {
+  border-color: var(--border-glow);
+}
+
+/* ── File Uploader Overrides ─────────────────────────────────── */
+[data-testid="stFileUploader"] {
+  background: var(--bg-secondary) !important;
+  border: 2px dashed var(--border) !important;
+  border-radius: var(--radius) !important;
+  padding: 1.5rem !important;
+  transition: var(--transition) !important;
+}
+
+[data-testid="stFileUploader"]:hover {
+  border-color: var(--accent-primary) !important;
+  background: var(--accent-glow) !important;
+}
+
+[data-testid="stFileUploaderDropzone"] label {
+  color: var(--text-secondary) !important;
+  font-size: 0.9rem !important;
+}
+
+/* ── Buttons ─────────────────────────────────────────────────── */
+.stButton > button {
+  background: var(--accent-primary) !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: var(--radius-sm) !important;
+  font-family: var(--font) !important;
+  font-weight: 600 !important;
+  font-size: 0.95rem !important;
+  padding: 0.6rem 1.5rem !important;
+  transition: var(--transition) !important;
+  cursor: pointer !important;
+  letter-spacing: 0.01em !important;
+}
+
+.stButton > button:hover {
+  background: var(--accent-hover) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 20px var(--accent-glow) !important;
+}
+
+.stButton > button:active {
+  transform: translateY(0) !important;
+}
+
+.stButton > button:disabled {
+  background: var(--border) !important;
+  color: var(--text-muted) !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* ── Score Cards ─────────────────────────────────────────────── */
+.rr-scores-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.rr-score-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  text-align: center;
+  transition: var(--transition);
+}
+
+.rr-score-card:hover {
+  border-color: var(--border-glow);
+  transform: translateY(-2px);
+}
+
+.rr-score-number {
+  font-size: 3rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-hover));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.rr-score-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-top: 0.4rem;
+}
+
+.rr-score-sublabel {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.2rem;
+  font-style: italic;
+}
+
+/* ── Section Headers ─────────────────────────────────────────── */
+.rr-section-header {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 2rem 0 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ── Strength Items ──────────────────────────────────────────── */
+.rr-strength-item {
+  background: var(--green-bg);
+  border: 1px solid var(--green-border);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  transition: var(--transition);
+  line-height: 1.5;
+}
+
+.rr-strength-item:hover {
+  border-color: var(--green);
+  transform: translateX(3px);
+}
+
+.rr-strength-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  margin-right: 0.6rem;
+  vertical-align: middle;
+  position: relative;
+  top: -1px;
+}
+
+/* ── Weakness Items ──────────────────────────────────────────── */
+.rr-weakness-item {
+  background: var(--amber-bg);
+  border: 1px solid var(--amber-border);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  transition: var(--transition);
+  line-height: 1.5;
+}
+
+.rr-weakness-item:hover {
+  border-color: var(--amber);
+  transform: translateX(3px);
+}
+
+.rr-weakness-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--amber);
+  margin-right: 0.6rem;
+  vertical-align: middle;
+  position: relative;
+  top: -1px;
+}
+
+.rr-weakness-label {
+  font-weight: 600;
+  color: var(--amber);
+  display: block;
+  margin-bottom: 0.2rem;
+  font-size: 0.88rem;
+}
+
+.rr-weakness-reason {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+/* ── Overall Feedback Card ───────────────────────────────────── */
+.rr-feedback-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent-primary);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.5rem;
+  margin: 1rem 0;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: var(--text-primary);
+}
+
+/* ── Divider ─────────────────────────────────────────────────── */
+.rr-divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 2rem 0;
+}
+
+/* ── Chat Messages ───────────────────────────────────────────── */
+.rr-chat-container {
+  margin-top: 1.5rem;
+}
+
+.rr-msg-user {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+}
+
+.rr-msg-user-bubble {
+  background: var(--accent-primary);
+  color: #ffffff;
+  border-radius: 16px 16px 4px 16px;
+  padding: 0.75rem 1.1rem;
+  max-width: 75%;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.rr-msg-ai {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 1rem;
+}
+
+.rr-msg-ai-bubble {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  border-radius: 16px 16px 16px 4px;
+  padding: 0.9rem 1.2rem;
+  max-width: 85%;
+  font-size: 0.92rem;
+  line-height: 1.65;
+}
+
+.rr-msg-ai-bubble strong {
+  color: var(--accent-hover);
+}
+
+/* ── Error Box ───────────────────────────────────────────────── */
+.rr-error {
+  background: var(--red-bg);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-sm);
+  padding: 0.9rem 1.2rem;
+  color: #fca5a5;
+  font-size: 0.9rem;
+  margin: 1rem 0;
+}
+
+/* ── Info Box ────────────────────────────────────────────────── */
+.rr-info {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 1rem;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  margin: 0.5rem 0;
+}
+
+/* ── Spinner / Loading ───────────────────────────────────────── */
+.stSpinner > div {
+  border-color: var(--accent-primary) transparent transparent transparent !important;
+}
+
+/* ── Chat Input ──────────────────────────────────────────────── */
+.stChatInput {
+  background: var(--bg-secondary) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius) !important;
+}
+
+.stChatInput textarea {
+  background: transparent !important;
+  color: var(--text-primary) !important;
+  font-family: var(--font) !important;
+}
+
+/* ── Streamlit Alerts ────────────────────────────────────────── */
+.stAlert {
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-sm) !important;
+  color: var(--text-primary) !important;
+}
+
+/* ── Expander ────────────────────────────────────────────────── */
+.streamlit-expanderHeader {
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-sm) !important;
+  color: var(--text-primary) !important;
+  font-family: var(--font) !important;
+}
+
+/* ── Metric ──────────────────────────────────────────────────── */
+[data-testid="stMetric"] {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1.25rem;
+}
+
+[data-testid="stMetricValue"] {
+  color: var(--accent-hover) !important;
+  font-family: var(--font) !important;
+  font-weight: 700 !important;
+}
+
+[data-testid="stMetricLabel"] {
+  color: var(--text-muted) !important;
+  font-family: var(--font) !important;
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-primary); }
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--border-glow); }
+
+/* ── Animations ──────────────────────────────────────────────── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.rr-animate {
+  animation: fadeInUp 0.35s ease forwards;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 var(--accent-glow); }
+  50%       { box-shadow: 0 0 16px 4px var(--accent-glow); }
+}
+
+.rr-score-card:first-child {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+/* ── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .rr-title { font-size: 2rem; }
+  .rr-scores-row { grid-template-columns: 1fr; }
+  .block-container { padding: 1rem !important; }
+}
