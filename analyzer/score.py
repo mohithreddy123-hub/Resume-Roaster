@@ -67,11 +67,9 @@ def calculate_complete_metrics(resume_text: str, structured_resume: dict) -> dic
     Ensures 100% mathematical consistency across Resume Score, ATS Score,
     and Sub-Category Ratings (1-10).
 
-    Returns:
-        dict containing:
-            - resume_score: int (0-100)
-            - ats_score: int (0-100)
-            - category_ratings: dict of ratings (1-10)
+    Career-Stage Calibration Rules:
+    - Freshers/Students without industry experience are capped at 85/100 max.
+    - 10/10 sub-category ratings are strictly reserved for world-class scores (>=95).
     """
     from analyzer.ats import calculate_ats_score
 
@@ -84,17 +82,29 @@ def calculate_complete_metrics(resume_text: str, structured_resume: dict) -> dic
     skills_score = _score_skills(resume_text)
     edu_score    = _score_education(resume_text)
     exp_score    = _score_experience(resume_text)
-    grammar_score= _score_grammar(resume_text)
+
+    # Career-stage score cap: if no industry experience/internship, cap resume_score at 85
+    has_experience = exp_score >= 50
+    if not has_experience:
+        resume_score = min(resume_score, 85)
 
     summary_text = structured_resume.get("summary", "")
     summary_rating = 8 if len(summary_text) > 40 else (5 if summary_text else 3)
 
-    ats_rating        = max(1, min(10, round(ats_score / 10)))
-    project_rating    = max(1, min(10, round(proj_score / 10)))
-    skills_rating     = max(1, min(10, round(skills_score / 10)))
-    summary_rating    = max(1, min(10, round(summary_rating)))
-    placement_rating  = max(1, min(10, round((proj_score * 0.4 + skills_score * 0.4 + edu_score * 0.2) / 10)))
-    faang_rating      = max(1, min(10, round((proj_score * 0.5 + skills_score * 0.3 + exp_score * 0.2) / 10)))
+    # Convert scores (0-100) to sub-category ratings (1-10) with realistic scaling
+    def _to_rating(score_val: float) -> int:
+        r = round(score_val / 10)
+        # 10/10 requires score >= 95
+        if r >= 10 and score_val < 95:
+            r = 9
+        return max(1, min(10, r))
+
+    ats_rating        = _to_rating(ats_score)
+    project_rating    = _to_rating(proj_score)
+    skills_rating     = _to_rating(skills_score)
+    summary_rating    = _to_rating(summary_rating * 10)
+    placement_rating  = _to_rating(proj_score * 0.4 + skills_score * 0.4 + edu_score * 0.2)
+    faang_rating      = _to_rating(proj_score * 0.4 + skills_score * 0.3 + exp_score * 0.3)
 
     return {
         "resume_score": resume_score,
