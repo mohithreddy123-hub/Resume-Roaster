@@ -56,16 +56,24 @@ def parse_pdf(file_bytes: bytes) -> str:
 
     try:
         for page_number in range(len(doc)):
+            page = doc.load_page(page_number)
             # Extract text preserving layout reading order (multi-column top-to-bottom)
-            page_text = page.get_text("text", sort=True)  # type: ignore[arg-type]
+            try:
+                page_text = page.get_text("text", sort=True)  # type: ignore[arg-type]
+            except TypeError:
+                page_text = page.get_text("text")
 
             # Also extract embedded hyperlinks (e.g. GitHub/LinkedIn links)
-            links = page.get_links()
             link_urls: list[str] = []
-            for link in links:
-                uri = link.get("uri", "")
-                if uri and (uri.startswith("http://") or uri.startswith("https://")):
-                    link_urls.append(uri)
+            try:
+                links = page.get_links()
+                for link in links:
+                    if isinstance(link, dict):
+                        uri = link.get("uri", "")
+                        if uri and (uri.startswith("http://") or uri.startswith("https://")):
+                            link_urls.append(uri)
+            except Exception:
+                pass
 
             combined_page_text = page_text.strip() if page_text else ""
             if link_urls:
