@@ -44,8 +44,8 @@ Highlight missing tools or requirements from this Job Description.
 """
 
     return f"""
-You are performing an EXHAUSTIVE INITIAL ANALYSIS of the following resume.
-Act with the rigor and detail of top AI models (ChatGPT, Claude, Grok) and the authority of a 20-year veteran recruiter.
+You are performing an EXHAUSTIVE, HIGHLY DETAILED INITIAL ANALYSIS of the following resume.
+Act with the rigor, depth, and exact structure of top AI models (ChatGPT, Claude, Grok) and the authority of a 20-year veteran recruiter.
 
 ## RESUME CONTENT
 {resume_text}
@@ -57,49 +57,106 @@ Category: {category}
 {tone_instruction}
 
 ## YOUR TASK
-Analyze the resume thoroughly and respond in this EXACT structure. Use markdown formatting. Do NOT hold back on any section.
+Analyze the resume thoroughly and respond in this EXACT structure. Use markdown formatting.
 
 ---
 
 **Resume Score: [X]/100**
-[One sentence explaining the score honestly based on candidate quality and role fit]
+[One sentence explaining the overall score honestly]
 
 **ATS Score: [X]/100** *(estimated)*
-[One sentence on why this ATS score was given based on formatting, parsing, and keywords]
+[One sentence explaining the ATS friendliness score]
 
-**First Impression & Executive Summary**
-[2–3 sentences giving a high-level recruiter perception of the candidate]
+I went through your resume carefully. Overall, this is a [brief 2-sentence summary of candidate level, core stack, and target role suitability].
 
-**Strengths**
-List 3–6 genuine strengths. Only include real achievements and well-written sections.
-Format each as: • [Strength]: [brief explanation]
+### Overall Rating
 
-**Weaknesses, Red Flags & Bad Placements**
-List 3–6 critical weaknesses or poor section placements (even if the resume is good!). Explain WHY each is a problem.
-Format each as: • [Weakness/Red Flag]: [why it's problematic] → *Fix: [how to fix it]*
+| Category | Rating |
+| --- | ---: |
+| ATS Friendliness | **[X]/10** |
+| Project Quality | **[X]/10** |
+| Technical Skills | **[X]/10** |
+| Professional Summary | **[X]/10** |
+| Freshers / Placement Readiness | **[X]/10** |
+| FAANG / Top Product Companies | **[X]/10** |
 
-**Line-by-Line Bullet Point Audit**
-Identify 2–4 specific weak or vague bullet points from the resume. Quote them directly and show how to rewrite them with metrics.
-Format each as:
-• **Original Bullet**: "[quote weak bullet from resume]"
-  • **Problem**: [vague language, missing metrics, weak verb, etc.]
-  • **Better Version**: "[suggested strong rewritten bullet with metrics/impact]"
+---
 
-**Skill Depth & Market Alignment**
-• **Skills to Keep/Highlight**: [List 3–5 of the candidate's strongest relevant skills]
-• **Missing / Recommended Skills**: [List 3–5 critical market or JD skills missing from the resume, e.g. Docker, CI/CD, AWS, specific frameworks]
-• **Project & Skill Alignment**: [Point out technologies mentioned in projects that were omitted from the Skills section, or vice versa]
+## What is Very Good
 
-**Overall Feedback**
-Write 3–5 lines summarizing the turnaround strategy for this candidate.
-{_get_feedback_guide(category)}
+### 1. [Key Strength Title 1] ⭐⭐⭐⭐⭐
+[Detailed explanation of why this section is strong, quoting good bullet points from the resume]
+
+### 2. [Key Strength Title 2]
+[Detailed explanation, highlighting impact metrics or good phrasing]
+
+### 3. [Key Strength Title 3]
+[Detailed explanation of stack or project uniqueness]
+
+---
+
+## Things I Would Improve
+
+### 1. Professional Summary (or Intro Section)
+Current:
+> "[Quote current summary or intro text from resume]"
+
+It's good, but it could be even more targeted. For example:
+> "[Exact rewritten version of the summary tailored for their target role]"
+
+### 2. Technical Skills & Ordering
+Current order: [List current order of skills section]
+Suggested improvement:
+[List improved ordering and grouping to highlight core stack]
+
+### 3. Bullet Point & Metrics Audit
+Current:
+> "[Quote weak or vague bullet point from resume]"
+
+Suggested Rewrite:
+> "[Exact rewritten bullet point with quantifiable metrics, impact, and strong action verbs]"
+
+### 4. Experience / Projects / Education Tweaks
+[Detailed specific improvements for remaining sections, pointing out vague parts or missing details]
+
+---
+
+## Things Recruiters Will Notice (First 15–20 Seconds)
+
+Within 15–20 seconds, recruiters will scan and see:
+✅ [Key technology/skill 1]
+✅ [Key technology/skill 2]
+✅ [Key project/metric 3]
+✅ [Key technology/skill 4]
+
+---
+
+## What's Missing?
+
+Not required, but these would make the resume even stronger:
+• [Missing skill/tool 1, e.g. Docker, CI/CD, Pytest, Cloud]
+• [Missing profile link / portfolio / GitHub]
+• [Missing architectural or testing detail]
+
+---
+
+## ATS Keywords Found
+
+Your resume already includes valuable keywords:
+`[Keyword 1]`, `[Keyword 2]`, `[Keyword 3]`, `[Keyword 4]`, `[Keyword 5]`, `[Keyword 6]`
+
+---
+
+## Final Verdict
+
+[2–3 closing sentences giving the recruiter's final decision on whether they would shortlist this resume for an interview, along with immediate next steps].
 
 ---
 
 IMPORTANT RULES:
-- Assign honest, realistic scores ([X] MUST be an integer between 0 and 100). Do not default to high scores unless earned.
-- NEVER skip the Weaknesses or Line-by-Line Audit sections, even if the resume scores above 80/100!
-- Do NOT reveal the internal category label.
+- Assign honest, realistic scores ([X] MUST be an integer). Do NOT make every resume a 99/100.
+- ALWAYS provide the exact rewritten examples for "Things I Would Improve" (Summary rewrite + Bullet rewrites).
+- Do NOT skip any section of this template.
 - After your response, STOP. The user will ask follow-up questions.
 """.strip()
 
