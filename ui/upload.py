@@ -46,7 +46,7 @@ def render_upload_section() -> tuple[bytes | None, str | None, str]:
             Supported formats: PDF · DOCX &nbsp;|&nbsp; Maximum size: 10MB
         </div>
         """, unsafe_allow_html=True)
-        return None, None
+        return None, None, ""
 
     # File uploaded — show file info
     file_bytes = uploaded_file.read()
