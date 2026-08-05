@@ -15,7 +15,7 @@ Flow:
 
 import streamlit as st
 
-from config import APP_ICON, APP_TITLE
+from config import APP_ICON, APP_TITLE, CATEGORY_BAD
 
 # ── Page Config (must be first Streamlit call) ────────────────
 st.set_page_config(
