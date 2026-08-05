@@ -90,24 +90,27 @@ def reset_session() -> None:
 
 
 # ── Resume Analysis Pipeline ──────────────────────────────────
-def run_analysis_pipeline(file_bytes: bytes, filename: str) -> bool:
+def run_analysis_pipeline(
+    file_bytes: bytes, filename: str, job_description: str = ""
+) -> bool:
     """
-    Run the full resume analysis pipeline.
+    Orchestrate the full analysis flow.
 
     Steps:
         1. Validate file
         2. Parse resume
         3. Validate extracted text
         4. Clean text
-        5. Calculate scores
-        6. Classify resume
-        7. Extract strengths and weaknesses
-        8. Generate AI feedback via Gemini
+        5. Calculate local scores & classify (for internal tone category)
+        6. Extract strengths and weaknesses
+        7. Generate AI feedback via Gemini (with optional Job Description)
+        8. Extract strict scores from AI response
         9. Store everything in session state
 
     Args:
-        file_bytes: Raw bytes of the uploaded file.
-        filename:   Original filename.
+        file_bytes:      Raw bytes of the uploaded file.
+        filename:        Original filename.
+        job_description: Optional target Job Description text.
 
     Returns:
         True if analysis succeeded, False if any step failed.
@@ -135,24 +138,20 @@ def run_analysis_pipeline(file_bytes: bytes, filename: str) -> bool:
     # Step 4: Clean the text
     clean_resume_text = clean_text(parse_result.text)
 
-    # Step 5: Calculate scores (local — no API call)
-    with st.spinner("Calculating scores..."):
-        resume_score = calculate_resume_score(clean_resume_text)
-        ats_score    = calculate_ats_score(clean_resume_text)
+    # Step 5: Local score estimation & internal classification
+    local_resume_score = calculate_resume_score(clean_resume_text)
+    local_ats_score    = calculate_ats_score(clean_resume_text)
+    category = classify_resume(local_resume_score)
 
-    # Step 6: Classify resume (internal only)
-    category = classify_resume(resume_score)
+    # Step 6: Extract strengths and weaknesses (local baseline)
+    strengths  = extract_strengths(clean_resume_text)
+    weaknesses = extract_weaknesses(clean_resume_text)
 
-    # Step 7: Extract strengths and weaknesses (local — no API call)
-    with st.spinner("Analyzing strengths and weaknesses..."):
-        strengths  = extract_strengths(clean_resume_text)
-        weaknesses = extract_weaknesses(clean_resume_text)
-
-    # Step 8: Generate AI-powered overall feedback
-    with st.spinner("Getting AI feedback... This may take a moment."):
+    # Step 7: Generate AI-powered overall feedback (passing Job Description)
+    with st.spinner("Senior recruiter is reviewing your resume... This may take a moment."):
         try:
             system_prompt  = get_system_prompt()
-            analysis_query = get_roast_prompt(clean_resume_text, category)
+            analysis_query = get_roast_prompt(clean_resume_text, category, job_description)
 
             ai_response = send_message(
                 system_prompt=system_prompt,
@@ -169,15 +168,20 @@ def run_analysis_pipeline(file_bytes: bytes, filename: str) -> bool:
             st.session_state.error_message = str(e)
             return False
 
+    # Step 8: Parse strict scores from AI response (fallback to local if parse fails)
+    ai_resume_score, ai_ats_score = _extract_ai_scores(
+        ai_response, fallback_resume=local_resume_score, fallback_ats=local_ats_score
+    )
+
     # Step 9: Parse overall feedback from AI response
-    # The AI response contains full analysis — extract the Overall Feedback section
     overall_feedback = _extract_overall_feedback(ai_response)
 
     # Step 10: Store everything in session state
     st.session_state.analysis_done       = True
     st.session_state.resume_text         = clean_resume_text
-    st.session_state.resume_score        = resume_score
-    st.session_state.ats_score           = ats_score
+    st.session_state.job_description     = job_description
+    st.session_state.resume_score        = ai_resume_score
+    st.session_state.ats_score           = ai_ats_score
     st.session_state.resume_category     = category
     st.session_state.strengths           = strengths
     st.session_state.weaknesses          = weaknesses
@@ -191,6 +195,48 @@ def run_analysis_pipeline(file_bytes: bytes, filename: str) -> bool:
     ]
 
     return True
+
+
+import re
+
+
+def _extract_ai_scores(
+    ai_response: str, fallback_resume: int = 70, fallback_ats: int = 70
+) -> tuple[int, int]:
+    """
+    Extract Resume Score and ATS Score from AI markdown response.
+
+    Looks for patterns like:
+        **Resume Score: 68/100**
+        **ATS Score: 72/100**
+
+    Returns:
+        Tuple of (resume_score, ats_score) as integers.
+    """
+    resume_score = fallback_resume
+    ats_score = fallback_ats
+
+    # Pattern for Resume Score: 65/100 or Score: 65
+    resume_match = re.search(r"Resume\s+Score:\s*(\d{1,3})\s*/\s*100", ai_response, re.IGNORECASE)
+    if resume_match:
+        try:
+            resume_score = int(resume_match.group(1))
+        except ValueError:
+            pass
+
+    # Pattern for ATS Score: 70/100
+    ats_match = re.search(r"ATS\s+Score:\s*(\d{1,3})\s*/\s*100", ai_response, re.IGNORECASE)
+    if ats_match:
+        try:
+            ats_score = int(ats_match.group(1))
+        except ValueError:
+            pass
+
+    # Ensure bounds between 0 and 100
+    resume_score = max(0, min(100, resume_score))
+    ats_score = max(0, min(100, ats_score))
+
+    return resume_score, ats_score
 
 
 def _extract_overall_feedback(ai_response: str) -> str:
@@ -290,11 +336,11 @@ def main() -> None:
             st.session_state.error_message = None
 
         # Show upload section
-        file_bytes, filename = render_upload_section()
+        file_bytes, filename, job_description = render_upload_section()
 
         # If user clicked Analyze
         if file_bytes is not None and filename is not None:
-            success = run_analysis_pipeline(file_bytes, filename)
+            success = run_analysis_pipeline(file_bytes, filename, job_description)
             if success:
                 st.rerun()  # Rerun to show results in clean state
             else:

@@ -11,18 +11,19 @@ import streamlit as st
 from config import MAX_FILE_SIZE_MB, SUPPORTED_FORMATS
 
 
-def render_upload_section() -> tuple[bytes | None, str | None]:
+def render_upload_section() -> tuple[bytes | None, str | None, str]:
     """
     Render the file upload section of the landing page.
 
     Displays:
         - File uploader (PDF and DOCX only)
         - File info after upload
+        - Optional Job Description text area
         - "Analyze Resume" button
         - Inline validation feedback
 
     Returns:
-        Tuple of (file_bytes, filename) if user clicked Analyze, else (None, None).
+        Tuple of (file_bytes, filename, job_description) if user clicked Analyze, else (None, None, "").
     """
     st.markdown("""
     <div class="rr-upload-card rr-animate">
@@ -63,6 +64,14 @@ def render_upload_section() -> tuple[bytes | None, str | None]:
     </div>
     """, unsafe_allow_html=True)
 
+    # Optional Job Description input
+    job_description = st.text_area(
+        label="🎯 Target Job Description (Optional)",
+        placeholder="Paste the job description or role details here for a targeted roast & skill match...",
+        height=120,
+        key="job_description_input",
+    )
+
     # Analyze button
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
@@ -73,9 +82,9 @@ def render_upload_section() -> tuple[bytes | None, str | None]:
         )
 
     if analyze_clicked:
-        return file_bytes, filename
+        return file_bytes, filename, job_description.strip()
 
-    return None, None
+    return None, None, ""
 
 
 def render_clear_button() -> bool:
