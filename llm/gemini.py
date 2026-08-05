@@ -20,7 +20,7 @@ import os
 from config import GEMINI_MODEL, GEMINI_MAX_RETRIES, GEMINI_RETRY_DELAY_SECONDS
 
 # Load environment variables from .env
-load_dotenv()
+load_dotenv(override=True)
 
 
 class GeminiError(Exception):

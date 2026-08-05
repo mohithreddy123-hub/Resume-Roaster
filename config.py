@@ -89,7 +89,7 @@ SECTION_PATTERNS: dict[str, list[str]] = {
 
 # ─── Gemini Model ─────────────────────────────────────────────────────────────
 
-GEMINI_MODEL: str = "gemini-1.5-flash"
+GEMINI_MODEL: str = "gemini-flash-latest"
 GEMINI_MAX_RETRIES: int = 3
 GEMINI_RETRY_DELAY_SECONDS: int = 2
 
