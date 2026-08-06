@@ -36,13 +36,15 @@ def render_analysis_results() -> None:
 
     render_section_header("🎯 Senior Recruiter Review")
 
-    # 2. First Reaction Banner (Spontaneous Recruiter Opening)
-    first_reaction = analysis_json.get("first_reaction", "")
-    if first_reaction:
+    # 2. Natural Recruiter Opening (replaces first_reaction banner)
+    # Supports both new field name ("opening") and legacy ("first_reaction")
+    opening = analysis_json.get("opening", analysis_json.get("first_reaction", ""))
+    if opening:
         st.markdown(
-            f'<div class="rr-feedback-card rr-animate" style="border-left: 4px solid #f39c12; background: rgba(243, 156, 18, 0.08); padding: 16px; margin-bottom: 20px;">'
-            f'<span style="font-size: 1.2rem; font-weight: 700; color: #f39c12;">💬 First Reaction:</span><br/>'
-            f'<i style="font-size: 1.05rem;">"{first_reaction}"</i>'
+            f'<div class="rr-feedback-card rr-animate" style="'
+            f'border-left: 4px solid #f39c12; background: rgba(243,156,18,0.08); '
+            f'padding: 16px 20px; margin-bottom: 20px; border-radius: 6px;">'
+            f'<span style="font-size: 1.05rem; line-height: 1.7;">{opening}</span>'
             f'</div>',
             unsafe_allow_html=True,
         )
@@ -50,7 +52,7 @@ def render_analysis_results() -> None:
     # 3. Handle AWAITING MISSING INFO State (Bad / Sparse Resumes)
     if stage == "AWAITING_MISSING_INFO" or category == "Bad":
         st.warning("⚠️ **Analysis Paused: Missing Critical Resume Information**")
-        questions = analysis_json.get("missing_info_questions", [])
+        questions = analysis_json.get("follow_up_questions", analysis_json.get("missing_info_questions", []))
         if questions:
             st.markdown("### ❓ Please reply with the following details in the chat below:")
             for q in questions:
@@ -62,15 +64,36 @@ def render_analysis_results() -> None:
         return
 
     # 4. Render Dynamic AI Review Markdown (Presentation-Only Rendering)
-    review_markdown = analysis_json.get("review_markdown", analysis_json.get("conversational_review", analysis_json.get("recruiter_opinion", "")))
+    review_markdown = analysis_json.get(
+        "review_markdown",
+        analysis_json.get("conversational_review", analysis_json.get("recruiter_opinion", ""))
+    )
     if review_markdown:
         st.markdown(review_markdown)
 
-    # 5. Closing Recruiter Proposal
-    closing_p = analysis_json.get("closing_proposal", analysis_json.get("closing_question", "I'd personally fix the summary before touching anything else. Want to start there?"))
-    st.markdown(f"💡 **{closing_p}**")
+    # 5. Resume-Specific Follow-Up Questions (replaces generic closing_proposal)
+    follow_up_questions = analysis_json.get("follow_up_questions", [])
+    # Legacy fallback: if no follow_up_questions, try closing_proposal as a single question
+    if not follow_up_questions:
+        legacy = analysis_json.get("closing_proposal", analysis_json.get("closing_question", ""))
+        if legacy:
+            follow_up_questions = [legacy]
+
+    if follow_up_questions:
+        st.markdown(
+            '<div style="margin-top: 24px; padding: 16px 20px; '
+            'background: rgba(99,102,241,0.07); border-radius: 8px; '
+            'border-left: 3px solid #6366f1;">',
+            unsafe_allow_html=True,
+        )
+        st.markdown("**A few things I want to ask you:**")
+        for q in follow_up_questions:
+            if q and q.strip():
+                st.markdown(f"• {q}")
+        st.markdown("</div>", unsafe_allow_html=True)
 
     render_divider()
+
 
 
 def render_conversation() -> None:

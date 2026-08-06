@@ -105,23 +105,48 @@ TONE INSTRUCTION FOR {category.upper()}:
 
 def _get_tone_instruction(category: str) -> str:
     """Return tone-specific instructions based on category."""
+    shared = (
+        "\n\nOPENING PARAGRAPH RULE:\n"
+        "The 'opening' field must sound like a recruiter who just finished reading the resume. "
+        "NOT a template opener. NOT 'I have reviewed your resume.' "
+        "Write it as if you are speaking directly to the candidate, having just set the resume down. "
+        "2-4 natural lines. Reference one specific thing from the resume to prove you actually read it.\n"
+        "\nFOLLOW-UP QUESTION RULE:\n"
+        "The 'follow_up_questions' MUST be generated from specific gaps, unclear claims, or "
+        "interesting opportunities visible in THIS resume. "
+        "Reference actual project names, technologies, or sections you saw. "
+        "Never ask 'Which section would you like to improve?' or any other generic question."
+    )
+
     instructions = {
         CATEGORY_EXCELLENT: (
-            "This is a strong resume, but do NOT hold back. Focus on executive polish, "
-            "missing quantifiable metrics, high-impact phrasing, and top-tier market standards. "
-            "Even strong resumes have weak bullet points — find them and fix them."
+            "This is a strong resume. Open with genuine appreciation — but stay honest about "
+            "what still needs polish. Focus on executive-level precision: missing metrics, "
+            "weak bullet phrasing, and top-tier competitive standards. Even great resumes "
+            "have at least 2-3 things holding them back from the top 1%."
+            + shared
         ),
         CATEGORY_GOOD: (
-            "Use direct feedback with sharp humor. Point out weak spots, missing metrics, "
-            "and missing skills without holding back. Treat them like a candidate who has potential but is sloppy."
+            "This resume has real potential but is leaving opportunities on the table. "
+            "Open with balanced honesty — acknowledge what works, then be direct about "
+            "what's costing them callbacks. Use sharp, decisive feedback. "
+            "Treat them like a candidate who could get interviews tomorrow with the right changes."
+            + shared
         ),
         CATEGORY_AVERAGE: (
-            "Be direct with sharp recruiter sarcasm. Point out weaknesses clearly and memorably. "
-            "Expose vague descriptions, bad section layout, and missing core skills."
+            "This resume has work to do. Open with honest, direct feedback — not cruel, "
+            "but unflinchingly clear about what's not working. "
+            "Point out the specific weak spots (vague descriptions, missing metrics, "
+            "absent sections) that are causing recruiters to pass. "
+            "Always follow criticism with a concrete fix."
+            + shared
         ),
         CATEGORY_BAD: (
-            "Unfiltered directness. This resume needs serious work. Roast terrible formatting and lack of depth, "
-            "providing an immediate step-by-step turnaround plan."
+            "This resume needs serious reconstruction. Open honestly and directly — "
+            "the candidate deserves to know the truth. Focus on the biggest structural "
+            "problems first and provide an immediate actionable path forward. "
+            "Constructive throughout, even when the feedback is harsh."
+            + shared
         ),
     }
     return instructions.get(category, instructions[CATEGORY_AVERAGE])
