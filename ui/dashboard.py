@@ -21,8 +21,8 @@ from ui.styles import (
 
 def render_analysis_results() -> None:
     """
-    Render category-driven conversational resume review results.
-    Renders First Reaction, Recruiter Opinion, Key Roasts & Fixes, and Curiosity Questions.
+    Render pure conversational resume review results.
+    Displays fixed score cards (Resume Score + ATS Score) followed by the Recruiter's continuous review.
     """
     resume_score   = st.session_state.get("resume_score", 0)
     ats_score      = st.session_state.get("ats_score", 0)
@@ -31,12 +31,12 @@ def render_analysis_results() -> None:
     analysis_json  = st.session_state.get("analysis_json", {})
     stage          = st.session_state.get("conversation_stage", "INITIAL_REVIEW")
 
-    # 1. Deterministic Score Cards
+    # 1. Deterministic Score Cards (Resume Score & ATS Score only)
     render_score_cards(resume_score, ats_score)
 
     render_section_header("🔥 Senior Recruiter Resume Review")
 
-    # 2. First Reaction Banner (The Spontaneous Recruiter Opening)
+    # 2. First Reaction Banner (Spontaneous Recruiter Opening)
     first_reaction = analysis_json.get("first_reaction", "")
     if first_reaction:
         st.markdown(
@@ -61,65 +61,29 @@ def render_analysis_results() -> None:
         render_divider()
         return
 
-    # 4. Category Breakdown Metrics (Mathematical source of truth)
-    ratings = analysis_json.get("category_ratings", {})
-    if ratings:
-        st.markdown("### 📊 Category Breakdown")
-        cols = st.columns(3)
-        with cols[0]:
-            st.metric("ATS Friendliness", f"{ratings.get('ats_friendliness', 7)}/10")
-            st.metric("Technical Skills", f"{ratings.get('technical_skills', 7)}/10")
-        with cols[1]:
-            st.metric("Project Quality", f"{ratings.get('project_quality', 7)}/10")
-            st.metric("Professional Summary", f"{ratings.get('professional_summary', 6)}/10")
-        with cols[2]:
-            st.metric("Placement Readiness", f"{ratings.get('placement_readiness', 7)}/10")
-            st.metric("FAANG Readiness", f"{ratings.get('faang_readiness', 6)}/10")
+    # 4. Continuous Recruiter Assessment (Main Conversational Paragraphs)
+    review_text = analysis_json.get("conversational_review", analysis_json.get("recruiter_opinion", analysis_json.get("first_impression", "")))
+    if review_text:
+        st.info(f"**Recruiter Verdict**: {review_text}")
 
-    # 5. Recruiter Opinion & Assessment
-    opinion = analysis_json.get("recruiter_opinion", analysis_json.get("first_impression", ""))
-    if opinion:
-        st.info(f"**Recruiter Assessment**: {opinion}")
-
-    # 6. Key Strengths (if present)
-    strengths = analysis_json.get("strengths", [])
-    if strengths:
-        st.markdown("### ⭐ Key Strengths")
-        for item in strengths:
-            if isinstance(item, dict):
-                st.markdown(f"• **{item.get('title', 'Strength')}**: {item.get('explanation', '')}")
-            else:
-                st.markdown(f"• {item}")
-
-    # 7. Key Roasts & Immediate Solutions
+    # 5. Key Roasts & Immediate Solutions (Woven seamlessly)
     roasts = analysis_json.get("key_roasts_and_fixes", analysis_json.get("roasts_and_solutions", analysis_json.get("weaknesses", [])))
     if roasts:
-        st.markdown("### 🔥 Recruiter Roasts & Solutions")
+        st.markdown("### ✍️ Priority Roasts & Metric Rewrites")
         for item in roasts:
             if isinstance(item, dict):
                 roast_text = item.get("roast", item.get("why", ""))
                 sol_text = item.get("solution", item.get("fix", ""))
                 st.markdown(
                     f"• **{item.get('issue', 'Section')}**: {roast_text}\n"
-                    f"  👉 *Immediate Fix*: **{sol_text}**"
+                    f"  👉 *Metric Rewrite*: **{sol_text}**"
                 )
             else:
                 st.markdown(f"• {item}")
 
-    # 8. Curiosity Challenge Box (Recruiter Questioning Unverified Claims)
-    curiosity = analysis_json.get("curiosity_question", "")
-    if curiosity:
-        st.markdown(
-            f'<div style="border: 1px solid #3498db; background: rgba(52, 152, 219, 0.08); padding: 14px; border-radius: 8px; margin: 15px 0;">'
-            f'<strong style="color: #3498db;">🧐 Recruiter Curiosity Check:</strong><br/>'
-            f'"{curiosity}"'
-            f'</div>',
-            unsafe_allow_html=True,
-        )
-
-    # 9. Closing Conversational Prompt
-    closing_q = analysis_json.get("closing_question", "Ask me to rewrite any section, suggest skills, or improve bullet points!")
-    st.markdown(f"💡 **{closing_q}**")
+    # 6. Closing Recruiter Proposal
+    closing_p = analysis_json.get("closing_proposal", analysis_json.get("closing_question", "I'd personally fix the summary before touching anything else. Want to start there?"))
+    st.markdown(f"💡 **{closing_p}**")
 
     render_divider()
 

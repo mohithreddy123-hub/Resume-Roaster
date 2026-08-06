@@ -12,85 +12,25 @@ import re
 def get_json_schema_instructions(category: str) -> str:
     """
     Return category-specific lightweight JSON schema instructions for Gemini.
-
-    Args:
-        category: Internal category — "Excellent", "Good", "Average", or "Bad".
-
-    Returns:
-        JSON instruction prompt string.
+    Generates a single continuous conversational review without rigid report subsections.
     """
-    if category == "Excellent":
-        schema_text = """
-{
-  "first_reaction": "I honestly expected another average student resume. Then I reached your [Specific Project Name]. Alright... now you've got my attention.",
-  "recruiter_opinion": "<2-3 sentence opinionated recruiter assessment referencing actual projects>",
-  "strengths": [
-    {
-      "title": "<Specific Strength Title>",
-      "explanation": "<Specific praise referencing actual project names or tech combinations>"
-    }
-  ],
-  "weaknesses": [
-    {
-      "issue": "<Executive Polish Point>",
-      "roast": "<Light roast on vague wording>",
-      "why": "<Why it could be even sharper>",
-      "solution": "<Immediate fix>"
-    }
-  ],
-  "curiosity_question": "<1 recruiter curiosity question challenging a claim or asking about deployment/metrics>",
-  "closing_question": "<1 natural conversational prompt inviting user's next step>"
-}
-"""
-    elif category == "Good":
-        schema_text = """
-{
-  "first_reaction": "This is actually better than I expected. You've clearly put effort into your projects. Now let's talk about why this still isn't interview-ready.",
-  "recruiter_opinion": "<2-3 sentence opinionated recruiter assessment referencing actual projects>",
-  "strengths": [
-    {
-      "title": "<Specific Strength Title>",
-      "explanation": "<Specific praise referencing actual project names or tech stacks>"
-    }
-  ],
-  "key_roasts_and_fixes": [
-    {
-      "issue": "<Specific Project / Section>",
-      "roast": "<Memorable, witty roast of the resume writing (never person)>",
-      "why": "<Why a screening recruiter gets confused in 15 seconds>",
-      "solution": "<Immediate metric rewrite or practical solution>"
-    }
-  ],
-  "curiosity_question": "<1 natural curiosity question, e.g. 'I noticed Docker in [Project]. Did you deploy to cloud or run locally?'>",
-  "closing_question": "<1 sharp follow-up question inviting next step>"
-}
-"""
-    elif category == "Average":
-        schema_text = """
-{
-  "first_reaction": "I can already see the problem. You did the work. Your resume forgot to tell me.",
-  "recruiter_opinion": "<2-3 sentence direct recruiter assessment referencing exact project names>",
-  "key_roasts_and_fixes": [
-    {
-      "issue": "<Specific Project / Section>",
-      "roast": "<Memorable, witty roast calling out vague descriptions>",
-      "why": "<Why this fails the 20-second recruiter scan>",
-      "solution": "<Exact metric rewrite or structural fix>"
-    }
-  ],
-  "curiosity_question": "<1 natural challenge question, e.g. 'You wrote optimized performance—optimized by how much?'>",
-  "closing_question": "<1 direct follow-up question asking which section to rewrite first>"
-}
-"""
-    else:  # Bad / Missing Info
+    if category == "Bad":
         schema_text = """
 {
   "first_reaction": "I'm going to be honest. This resume is making your job search much harder than it needs to. Let's fix it.",
-  "recruiter_opinion": "<2 sentence assessment pointing out missing sections or metrics>",
+  "conversational_review": "<2-3 sentence honest assessment pointing out missing details>",
   "missing_info_questions": [
     "<Question asking for missing degree, grad year, email, phone, project details, GitHub, or LinkedIn>"
   ],
   "closing_prompt": "<Request asking candidate to reply with missing details before proceeding with full review>"
+}
+"""
+    else:
+        schema_text = """
+{
+  "first_reaction": "<Spontaneous human recruiter reaction opening quote calibrated to resume category>",
+  "conversational_review": "<Continuous, opinionated recruiter review paragraph(s). Prioritizes ONLY the top 2-3 biggest issues, ignores good sections, evolves opinions while reading ('I almost ignored this project... wait, I kept reading...'), compares sections ('Your projects are much stronger than your summary'), and weaves roasts naturally with WHY it fails and HOW to fix it>",
+  "closing_proposal": "<Natural recruiter conversation ending proposal (e.g., 'I'd personally fix the summary before touching anything else. Want to start there?')>"
 }
 """
 
