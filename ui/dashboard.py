@@ -34,7 +34,7 @@ def render_analysis_results() -> None:
     # 1. Deterministic Score Cards (Resume Score & ATS Score only)
     render_score_cards(resume_score, ats_score)
 
-    render_section_header("🔥 Senior Recruiter Resume Review")
+    render_section_header("🎯 Senior Recruiter Review")
 
     # 2. First Reaction Banner (Spontaneous Recruiter Opening)
     first_reaction = analysis_json.get("first_reaction", "")

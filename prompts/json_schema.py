@@ -12,7 +12,8 @@ import re
 def get_json_schema_instructions(category: str) -> str:
     """
     Return category-specific lightweight JSON schema instructions for Gemini.
-    Generates scannable, well-formatted Markdown content without rigid report subsections.
+    Generates scannable, well-formatted Markdown content using authentic recruiter headings.
+    NEVER include explicit 'Roast' or 'Roasting' words in Markdown headings!
     """
     if category == "Bad":
         schema_text = """
@@ -31,7 +32,7 @@ def get_json_schema_instructions(category: str) -> str:
         schema_text = """
 {
   "first_reaction": "<1-2 line spontaneous recruiter reaction quote calibrated to resume category>",
-  "review_markdown": "<Scannable, dynamically structured Markdown using short paragraphs (1-2 sentences max) and bullet points (•). Include:\\n### ⭐ Key Strengths (3-5 concise bullets with real resume evidence)\\n### 🔥 Priority Weaknesses & Roasts (3-5 concise bullets with integrated roast + WHY it fails + **👉 Metric Rewrite**)\\n### 🎯 Top Recruiter Focus (1-2 sentence callout of the single #1 issue affecting interview callbacks)>",
+  "review_markdown": "<Scannable, dynamically structured Markdown using short paragraphs (1-2 sentences max) and bullet points (•). DO NOT use the word 'Roast' in headings! Use headings like:\\n### ⭐ What Impressed Me (1-3 concise bullets with real resume evidence)\\n### ⚠️ What's Holding This Resume Back (3-5 concise bullets with decisive criticism + WHY it fails + **👉 Metric Fix**)\\n### 🎯 What I'd Fix First (1-2 sentence decisive priority action)>",
   "closing_proposal": "<1 line natural recruiter proposal (e.g., 'I'd personally fix the summary before touching anything else. Want to start there?')>"
 }
 """
