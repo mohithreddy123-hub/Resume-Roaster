@@ -12,25 +12,27 @@ import re
 def get_json_schema_instructions(category: str) -> str:
     """
     Return category-specific lightweight JSON schema instructions for Gemini.
-    Generates a single continuous conversational review without rigid report subsections.
+    Generates scannable, well-formatted Markdown content without rigid report subsections.
     """
     if category == "Bad":
         schema_text = """
 {
   "first_reaction": "I'm going to be honest. This resume is making your job search much harder than it needs to. Let's fix it.",
-  "conversational_review": "<2-3 sentence honest assessment pointing out missing details>",
+  "review_markdown": "### ⚠️ Critical Missing Information\\nYour resume is missing key sections required for technical screening.\\n\\n• **Missing Details**: Education, project metrics, or profile links need to be added before we can do a full review.",
   "missing_info_questions": [
-    "<Question asking for missing degree, grad year, email, phone, project details, GitHub, or LinkedIn>"
+    "Could you share your degree and graduation year?",
+    "What technologies did you use in your main projects?",
+    "Do you have a GitHub or LinkedIn profile link?"
   ],
-  "closing_prompt": "<Request asking candidate to reply with missing details before proceeding with full review>"
+  "closing_proposal": "Reply with these details so I can give you a real recruiter review!"
 }
 """
     else:
         schema_text = """
 {
-  "first_reaction": "<Spontaneous human recruiter reaction opening quote calibrated to resume category>",
-  "conversational_review": "<Continuous, opinionated recruiter review paragraph(s). Prioritizes ONLY the top 2-3 biggest issues, ignores good sections, evolves opinions while reading ('I almost ignored this project... wait, I kept reading...'), compares sections ('Your projects are much stronger than your summary'), and weaves roasts naturally with WHY it fails and HOW to fix it>",
-  "closing_proposal": "<Natural recruiter conversation ending proposal (e.g., 'I'd personally fix the summary before touching anything else. Want to start there?')>"
+  "first_reaction": "<1-2 line spontaneous recruiter reaction quote calibrated to resume category>",
+  "review_markdown": "<Scannable, dynamically structured Markdown using short paragraphs (1-2 sentences max) and bullet points (•). Include:\\n### ⭐ Key Strengths (3-5 concise bullets with real resume evidence)\\n### 🔥 Priority Weaknesses & Roasts (3-5 concise bullets with integrated roast + WHY it fails + **👉 Metric Rewrite**)\\n### 🎯 Top Recruiter Focus (1-2 sentence callout of the single #1 issue affecting interview callbacks)>",
+  "closing_proposal": "<1 line natural recruiter proposal (e.g., 'I'd personally fix the summary before touching anything else. Want to start there?')>"
 }
 """
 

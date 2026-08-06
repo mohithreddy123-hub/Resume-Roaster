@@ -21,8 +21,8 @@ from ui.styles import (
 
 def render_analysis_results() -> None:
     """
-    Render pure conversational resume review results.
-    Displays fixed score cards (Resume Score + ATS Score) followed by the Recruiter's continuous review.
+    Render presentation-only conversational resume review results.
+    Displays fixed score cards (Resume Score + ATS Score) followed by the AI's dynamically generated Markdown.
     """
     resume_score   = st.session_state.get("resume_score", 0)
     ats_score      = st.session_state.get("ats_score", 0)
@@ -61,27 +61,12 @@ def render_analysis_results() -> None:
         render_divider()
         return
 
-    # 4. Continuous Recruiter Assessment (Main Conversational Paragraphs)
-    review_text = analysis_json.get("conversational_review", analysis_json.get("recruiter_opinion", analysis_json.get("first_impression", "")))
-    if review_text:
-        st.info(f"**Recruiter Verdict**: {review_text}")
+    # 4. Render Dynamic AI Review Markdown (Presentation-Only Rendering)
+    review_markdown = analysis_json.get("review_markdown", analysis_json.get("conversational_review", analysis_json.get("recruiter_opinion", "")))
+    if review_markdown:
+        st.markdown(review_markdown)
 
-    # 5. Key Roasts & Immediate Solutions (Woven seamlessly)
-    roasts = analysis_json.get("key_roasts_and_fixes", analysis_json.get("roasts_and_solutions", analysis_json.get("weaknesses", [])))
-    if roasts:
-        st.markdown("### ✍️ Priority Roasts & Metric Rewrites")
-        for item in roasts:
-            if isinstance(item, dict):
-                roast_text = item.get("roast", item.get("why", ""))
-                sol_text = item.get("solution", item.get("fix", ""))
-                st.markdown(
-                    f"• **{item.get('issue', 'Section')}**: {roast_text}\n"
-                    f"  👉 *Metric Rewrite*: **{sol_text}**"
-                )
-            else:
-                st.markdown(f"• {item}")
-
-    # 6. Closing Recruiter Proposal
+    # 5. Closing Recruiter Proposal
     closing_p = analysis_json.get("closing_proposal", analysis_json.get("closing_question", "I'd personally fix the summary before touching anything else. Want to start there?"))
     st.markdown(f"💡 **{closing_p}**")
 
