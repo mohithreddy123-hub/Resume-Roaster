@@ -22,7 +22,9 @@ from ui.styles import (
 def render_analysis_results() -> None:
     """
     Render presentation-only conversational resume review results.
-    Displays fixed score cards (Resume Score + ATS Score) followed by the AI's dynamically generated Markdown.
+
+    Visual flow: Opening paragraph → Score cards → Review markdown → Follow-up questions.
+    The opening renders first so the recruiter's words land before the numbers.
     """
     resume_score   = st.session_state.get("resume_score", 0)
     ats_score      = st.session_state.get("ats_score", 0)
@@ -31,23 +33,24 @@ def render_analysis_results() -> None:
     analysis_json  = st.session_state.get("analysis_json", {})
     stage          = st.session_state.get("conversation_stage", "INITIAL_REVIEW")
 
-    # 1. Deterministic Score Cards (Resume Score & ATS Score only)
-    render_score_cards(resume_score, ats_score)
-
     render_section_header("🎯 Senior Recruiter Review")
 
-    # 2. Natural Recruiter Opening (replaces first_reaction banner)
-    # Supports both new field name ("opening") and legacy ("first_reaction")
+
+    # 1. Natural Recruiter Opening — rendered FIRST, before scores
+    # Supports both new ("opening") and legacy ("first_reaction") field names
     opening = analysis_json.get("opening", analysis_json.get("first_reaction", ""))
     if opening:
         st.markdown(
             f'<div class="rr-feedback-card rr-animate" style="'
-            f'border-left: 4px solid #f39c12; background: rgba(243,156,18,0.08); '
-            f'padding: 16px 20px; margin-bottom: 20px; border-radius: 6px;">'
-            f'<span style="font-size: 1.05rem; line-height: 1.7;">{opening}</span>'
+            f'border-left: 4px solid #f39c12; background: rgba(243,156,18,0.07); '
+            f'padding: 18px 22px; margin-bottom: 24px; border-radius: 8px; line-height: 1.75;">'
+            f'<span style="font-size: 1.05rem;">{opening}</span>'
             f'</div>',
             unsafe_allow_html=True,
         )
+
+    # 2. Deterministic Score Cards — rendered AFTER opening (visual flow: opening → scores → review)
+    render_score_cards(resume_score, ats_score)
 
     # 3. Handle AWAITING MISSING INFO State (Bad / Sparse Resumes)
     if stage == "AWAITING_MISSING_INFO" or category == "Bad":
@@ -63,7 +66,7 @@ def render_analysis_results() -> None:
         render_divider()
         return
 
-    # 4. Render Dynamic AI Review Markdown (Presentation-Only Rendering)
+    # 4. Render Dynamic AI Review Markdown (Presentation-Only — AI controls structure)
     review_markdown = analysis_json.get(
         "review_markdown",
         analysis_json.get("conversational_review", analysis_json.get("recruiter_opinion", ""))
@@ -71,9 +74,9 @@ def render_analysis_results() -> None:
     if review_markdown:
         st.markdown(review_markdown)
 
-    # 5. Resume-Specific Follow-Up Questions (replaces generic closing_proposal)
+    # 5. Resume-Specific Follow-Up Questions
     follow_up_questions = analysis_json.get("follow_up_questions", [])
-    # Legacy fallback: if no follow_up_questions, try closing_proposal as a single question
+    # Legacy fallback: if field absent, try closing_proposal as a single item
     if not follow_up_questions:
         legacy = analysis_json.get("closing_proposal", analysis_json.get("closing_question", ""))
         if legacy:
@@ -81,18 +84,19 @@ def render_analysis_results() -> None:
 
     if follow_up_questions:
         st.markdown(
-            '<div style="margin-top: 24px; padding: 16px 20px; '
+            '<div style="margin-top: 28px; padding: 18px 22px; '
             'background: rgba(99,102,241,0.07); border-radius: 8px; '
             'border-left: 3px solid #6366f1;">',
             unsafe_allow_html=True,
         )
-        st.markdown("**A few things I want to ask you:**")
+        st.markdown("**Before we continue — a few things I want to ask:**")
         for q in follow_up_questions:
             if q and q.strip():
                 st.markdown(f"• {q}")
         st.markdown("</div>", unsafe_allow_html=True)
 
     render_divider()
+
 
 
 
