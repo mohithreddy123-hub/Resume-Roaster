@@ -161,6 +161,15 @@ def run_analysis_pipeline(
     # Step 8: Classify resume in Python (considering missing fields)
     category = classify_resume(python_score, missing_fields)
 
+    # Step 8b: Compute evidence-based score explanation reasons
+    from analyzer.score import get_score_explanation
+    score_explanation = get_score_explanation(
+        resume_text=clean_resume_text,
+        structured_resume=structured_resume.to_dict(),
+        resume_score=python_score,
+        ats_score=ats_score,
+    )
+
     # Step 9: Handle Conversational Branching
     with st.spinner("Analyzing your resume with AI... This may take a moment."):
         try:
@@ -178,6 +187,7 @@ def run_analysis_pipeline(
                     ats_score=ats_score,
                     missing_fields=missing_fields,
                     job_description=job_description,
+                    score_explanation=score_explanation,
                 )
                 conversation_stage = "INITIAL_REVIEW"
 

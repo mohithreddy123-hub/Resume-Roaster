@@ -25,22 +25,25 @@ def get_roast_prompt(
     ats_score: int,
     missing_fields: list[str],
     job_description: str = "",
+    score_explanation: dict | None = None,
 ) -> str:
     """
     Build the initial analysis prompt passing Python deterministic scores and context.
 
     Args:
-        structured_resume: Dictionary of extracted resume sections.
-        category:          Internal quality category (Excellent/Good/Average/Bad).
-        python_score:      Deterministic Python resume score.
-        ats_score:         Deterministic Python ATS score.
-        missing_fields:    List of missing fields detected by Python.
-        job_description:   Optional target Job Description text.
+        structured_resume:  Dictionary of extracted resume sections.
+        category:           Internal quality category (Excellent/Good/Average/Bad).
+        python_score:       Deterministic Python resume score.
+        ats_score:          Deterministic Python ATS score.
+        missing_fields:     List of missing fields detected by Python.
+        job_description:    Optional target Job Description text.
+        score_explanation:  Optional dict with 'resume_score_reasons' and
+                            'ats_score_reasons' lists from get_score_explanation().
 
     Returns:
-        A complete JSON-formatted prompt string for Gemini.
+        A complete prompt string for Gemini.
     """
-    tone_instruction = _get_tone_instruction(category)
+    tone_instruction  = _get_tone_instruction(category)
     json_instructions = get_json_schema_instructions(category)
 
     jd_block = ""
@@ -49,7 +52,21 @@ def get_roast_prompt(
 
     missing_block = ""
     if missing_fields:
-        missing_block = f"\nMISSING CRITICAL FIELDS DETECTED BY PYTHON:\n- " + "\n- ".join(missing_fields) + "\n"
+        missing_block = "\nMISSING CRITICAL FIELDS DETECTED BY PYTHON:\n- " + "\n- ".join(missing_fields) + "\n"
+
+    # Inject score explanation reasons so AI review is always consistent with scores
+    score_block = ""
+    if score_explanation:
+        resume_reasons = score_explanation.get("resume_score_reasons", [])
+        ats_reasons    = score_explanation.get("ats_score_reasons", [])
+        if resume_reasons:
+            score_block += "\nSCORE EVIDENCE (Resume Score Reasons — your review MUST be consistent with these):\n"
+            for r in resume_reasons:
+                score_block += f"  • {r}\n"
+        if ats_reasons:
+            score_block += "\nSCORE EVIDENCE (ATS Score Reasons — your review MUST be consistent with these):\n"
+            for r in ats_reasons:
+                score_block += f"  • {r}\n"
 
     return f"""
 You are performing an INITIAL RECRUITER REVIEW of the candidate's resume.
@@ -59,7 +76,7 @@ QUALITY CATEGORY BASELINE (COMPUTED BY PYTHON):
 - Category: {category}
 - Deterministic Resume Score: {python_score}/100
 - Deterministic ATS Score: {ats_score}/100
-{missing_block}{jd_block}
+{missing_block}{jd_block}{score_block}
 EXTRACTED RESUME CONTENT:
 - Header: {structured_resume.get('header', '')}
 - Summary: {structured_resume.get('summary', '')}
@@ -70,8 +87,14 @@ EXTRACTED RESUME CONTENT:
 - Certifications: {structured_resume.get('certifications', '')}
 
 CRITICAL CONTENT REFERENCING RULE:
-You MUST reference ACTUAL project names, specific technology combinations, or specific bullet points from the resume above (e.g., "You used FastAPI and Docker together in your SaaS Platform project...").
+You MUST reference ACTUAL project names, specific technology combinations, or specific bullet points from the resume above.
 NEVER output generic boilerplate feedback like "Good technical skills" or "Improve descriptions".
+
+SCORE CONSISTENCY RULE:
+Your written review MUST be internally consistent with the Resume Score and ATS Score above.
+If the score is 60–69, the review should clearly reflect several significant issues.
+If the score is 80+, the review should reflect a strong resume with only targeted improvements needed.
+NEVER write a review that contradicts the score.
 
 TONE INSTRUCTION FOR {category.upper()}:
 {tone_instruction}

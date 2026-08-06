@@ -24,10 +24,10 @@ CATEGORY_BAD: str = "Bad"
 # Determines which category a resume falls into based on overall score
 
 SCORE_THRESHOLDS: dict[str, int] = {
-    CATEGORY_EXCELLENT: 80,   # 80–100
-    CATEGORY_GOOD: 60,        # 60–79
-    CATEGORY_AVERAGE: 40,     # 40–59
-    CATEGORY_BAD: 0,          # 0–39
+    CATEGORY_EXCELLENT: 88,   # 88–100 (was 80 — too easy to reach)
+    CATEGORY_GOOD: 70,        # 70–87  (was 60)
+    CATEGORY_AVERAGE: 50,     # 50–69  (unchanged)
+    CATEGORY_BAD: 0,          # 0–49   (unchanged)
 }
 
 # ─── Section Scoring Weights (must sum to 100) ────────────────────────────────
