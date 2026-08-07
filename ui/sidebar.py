@@ -5,10 +5,11 @@ ui/sidebar.py
 -------------
 Sidebar Conversation History component for Resume Roaster.
 Displays uploaded resumes in current session, session analytics, active resume switcher,
-multi-resume comparison triggers, and uploader reset buttons.
+direct sidebar file uploader, multi-resume comparison triggers, and uploader reset buttons.
 """
 
 import streamlit as st
+from config import MAX_FILE_SIZE_MB
 
 
 def render_sidebar_history() -> dict | None:
@@ -17,7 +18,8 @@ def render_sidebar_history() -> dict | None:
 
     Displays:
         - App Branding header
-        - "➕ Upload New Resume" button (resets uploader widget key)
+        - Direct Sidebar File Uploader (for instant new resume upload from anywhere)
+        - "➕ Upload New Resume" view reset button
         - Session Resumes list with active indicator & scores
         - Session Summary stats (Total, Avg Score, Avg ATS)
         - AI Resume Comparison trigger (if 2+ resumes)
@@ -28,11 +30,12 @@ def render_sidebar_history() -> dict | None:
     """
     resumes = st.session_state.get("resume_history", [])
     active_index = st.session_state.get("active_resume_index", 0)
+    uploader_key_id = st.session_state.get("uploader_key", 0)
 
     with st.sidebar:
         # App Branding Header
         st.markdown("""
-        <div style="padding: 0.25rem 0 1rem 0; display: flex; align-items: center; gap: 0.5rem;">
+        <div style="padding: 0.25rem 0 0.75rem 0; display: flex; align-items: center; gap: 0.5rem;">
             <div style="font-size: 1.6rem; line-height: 1;">🔥</div>
             <div>
                 <div style="font-weight: 800; font-size: 1.15rem; color: #1E293B; line-height: 1.1;">Resume Roaster</div>
@@ -41,14 +44,34 @@ def render_sidebar_history() -> dict | None:
         </div>
         """, unsafe_allow_html=True)
 
-        # Primary Upload New Resume Button
+        # Primary Upload New Resume View Reset Button
         if st.button("➕ Upload New Resume", key="sidebar_btn_new", use_container_width=True):
             return {"action": "new_upload"}
+
+        # Direct Sidebar Quick Upload
+        sidebar_file = st.file_uploader(
+            label="Quick Upload from Sidebar",
+            type=["pdf", "docx"],
+            accept_multiple_files=False,
+            key=f"sidebar_quick_uploader_{uploader_key_id}",
+            help=f"Supported: PDF, DOCX (Max {MAX_FILE_SIZE_MB}MB)",
+            label_visibility="collapsed",
+        )
+
+        if sidebar_file is not None:
+            sb_bytes = sidebar_file.getvalue()
+            sb_filename = sidebar_file.name
+            if sb_bytes and len(sb_bytes) > 0:
+                return {
+                    "action": "sidebar_file_uploaded",
+                    "file_bytes": sb_bytes,
+                    "filename": sb_filename,
+                }
 
         st.markdown('<div class="rr-sidebar-header">Uploaded Resumes</div>', unsafe_allow_html=True)
 
         if not resumes:
-            st.caption("No resumes in session history yet. Upload your first resume to get started.")
+            st.caption("No resumes in session history yet. Drop a resume above to get started.")
             return None
 
         # List uploaded resumes with active badge & score
@@ -58,7 +81,6 @@ def render_sidebar_history() -> dict | None:
             score = item.get("resume_score", 0)
             is_active = (idx == active_index and st.session_state.get("analysis_done", False))
 
-            # Truncate long filenames cleanly
             short_name = filename if len(filename) <= 22 else filename[:19] + "..."
             active_badge = " ✓" if is_active else ""
             btn_label = f"📄 {short_name} ({score}){active_badge}"

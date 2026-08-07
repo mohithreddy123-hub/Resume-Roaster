@@ -138,7 +138,7 @@ def run_analysis_pipeline(
     """
     progress_placeholder = st.empty()
 
-    # Step 1: Validate file
+    # Step 0: Reading resume
     with progress_placeholder.container():
         render_analysis_steps(0)
     time.sleep(0.3)
@@ -149,7 +149,7 @@ def run_analysis_pipeline(
         progress_placeholder.empty()
         return False
 
-    # Step 2: Parse text
+    # Step 1: Extracting content
     with progress_placeholder.container():
         render_analysis_steps(1)
     time.sleep(0.3)
@@ -166,7 +166,7 @@ def run_analysis_pipeline(
         progress_placeholder.empty()
         return False
 
-    # Step 3: Clean & detect sections
+    # Step 2: Calculating Resume Score
     with progress_placeholder.container():
         render_analysis_steps(2)
     time.sleep(0.3)
@@ -175,19 +175,14 @@ def run_analysis_pipeline(
     structured_resume = extract_structured_resume(clean_resume_text)
     missing_fields = find_missing_fields(clean_resume_text)
 
-    # Step 4: Compare skills & score
-    with progress_placeholder.container():
-        render_analysis_steps(3)
-    time.sleep(0.3)
-
     metrics = calculate_complete_metrics(clean_resume_text, structured_resume.to_dict())
     python_score = metrics["resume_score"]
     ats_score    = metrics["ats_score"]
     category_ratings = metrics["category_ratings"]
 
-    # Step 5: ATS Compatibility
+    # Step 3: Calculating ATS Score
     with progress_placeholder.container():
-        render_analysis_steps(4)
+        render_analysis_steps(3)
     time.sleep(0.3)
 
     category = classify_resume(python_score, missing_fields)
@@ -198,9 +193,9 @@ def run_analysis_pipeline(
         ats_score=ats_score,
     )
 
-    # Step 6: Prepare feedback with AI
+    # Step 4: Generating Recruiter Feedback
     with progress_placeholder.container():
-        render_analysis_steps(5)
+        render_analysis_steps(4)
 
     try:
         system_prompt = get_system_prompt()
@@ -238,10 +233,15 @@ def run_analysis_pipeline(
         progress_placeholder.empty()
         return False
 
+    # Step 5: Finalizing analysis
+    with progress_placeholder.container():
+        render_analysis_steps(5)
+
     analysis_json = parse_and_validate_analysis_json(
         ai_raw_response, category=category, fallback_score=python_score, fallback_ats=ats_score
     )
     analysis_json["category_ratings"] = category_ratings
+    time.sleep(0.3)
     progress_placeholder.empty()
 
     initial_summary = analysis_json.get("opening", "Resume review completed.")
@@ -350,6 +350,15 @@ def main() -> None:
         if act == "select_resume":
             load_resume_from_history(sidebar_action.get("index", 0))
             st.rerun()
+        elif act == "sidebar_file_uploaded":
+            file_bytes = sidebar_action.get("file_bytes")
+            filename = sidebar_action.get("filename")
+            if file_bytes and filename:
+                success = run_analysis_pipeline(file_bytes, filename)
+                if success:
+                    st.rerun()
+                else:
+                    st.rerun()
         elif act == "compare_resumes":
             run_resume_comparison()
             st.rerun()
@@ -410,6 +419,18 @@ def main() -> None:
 
     # Follow-up Chat History
     render_conversation()
+
+    # Handle clearing conversation history
+    if render_clear_conversation_button():
+        if st.session_state.conversation_history:
+            st.session_state.conversation_history = [
+                st.session_state.conversation_history[0]
+            ]
+            active_idx = st.session_state.get("active_resume_index", 0)
+            if 0 <= active_idx < len(resumes):
+                resumes[active_idx]["conversation_history"] = st.session_state.conversation_history
+                st.session_state.resume_history = resumes
+        st.rerun()
 
     # Chat Input for questions
     user_input = render_chat_interface()

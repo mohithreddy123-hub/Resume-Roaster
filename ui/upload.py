@@ -5,7 +5,7 @@ ui/upload.py
 ------------
 Upload component — handles custom hero file upload box UI, validation display,
 optional job description input, and primary trigger button.
-Uses dynamic uploader key from session state for clean resets.
+Uses uploaded_file.getvalue() to prevent file buffer exhaustion across Streamlit reruns.
 """
 
 import streamlit as st
@@ -18,7 +18,7 @@ def render_upload_section() -> tuple[bytes | None, str | None, str]:
 
     Displays:
         - Standout hero upload card with icon badge and clear hierarchy
-        - Streamlit drag & drop file uploader (dynamic key reset)
+        - Streamlit drag & drop file uploader
         - Optional Job Description toggle / input
         - Primary "🔥 Analyze Resume" button
 
@@ -51,8 +51,9 @@ def render_upload_section() -> tuple[bytes | None, str | None, str]:
     if uploaded_file is None:
         return None, None, ""
 
-    # File uploaded — read bytes & details
-    file_bytes = uploaded_file.read()
+    # CRITICAL FIX: Use .getvalue() instead of .read()
+    # .read() exhausts the buffer pointer on first call, causing empty bytes on analyze button click!
+    file_bytes = uploaded_file.getvalue()
     filename = uploaded_file.name
     file_size_kb = round(len(file_bytes) / 1024, 1)
     file_size_display = (
@@ -67,7 +68,7 @@ def render_upload_section() -> tuple[bytes | None, str | None, str]:
     </div>
     """, unsafe_allow_html=True)
 
-    # Optional Job Description input (collapsible expander for clean UI)
+    # Optional Job Description input
     with st.expander("🎯 Target Job Description (Optional)", expanded=False):
         job_description = st.text_area(
             label="Target Job Description",

@@ -1,9 +1,10 @@
 # pyrefly: ignore
+# type: ignore
 """
 prompts/json_schema.py
 ----------------------
 Defines the output schema and content instructions for Gemini's initial review.
-The instructions are written as character direction, not rule enforcement.
+Includes bulletproof regex JSON extraction to prevent JSON parse errors.
 """
 
 import json
@@ -80,16 +81,21 @@ def parse_and_validate_analysis_json(
 ) -> dict:
     """
     Parse raw AI response text into a validated dictionary.
-    Filters placeholder and empty strings from follow_up_questions.
+    Uses regex to extract the outermost JSON object substring.
     """
     cleaned = raw_text.strip()
 
+    # Strip code block fences if present
     if cleaned.startswith("```"):
         cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned)
         cleaned = re.sub(r"\s*```$", "", cleaned)
 
+    # Bulletproof: extract text between first '{' and last '}'
+    match = re.search(r"\{.*\}", cleaned, re.DOTALL)
+    json_str = match.group(0) if match else cleaned
+
     try:
-        data = json.loads(cleaned)
+        data = json.loads(json_str)
         if isinstance(data, dict):
             if "follow_up_questions" in data:
                 data["follow_up_questions"] = [
