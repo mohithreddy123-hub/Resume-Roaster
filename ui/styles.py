@@ -4,10 +4,9 @@
 ui/styles.py
 ------------
 Injects the custom CSS stylesheet into Streamlit.
-Provides helper functions for rendering styled components matching the light premium design.
+Provides helper functions for rendering styled components matching the multi-layered design system.
 """
 
-import time
 import streamlit as st
 from pathlib import Path
 
@@ -27,10 +26,10 @@ def load_css() -> None:
 # ── Hero Section ──────────────────────────────────────────────
 
 def render_hero() -> None:
-    """Render the minimal landing page hero — logo, title, subtitle."""
+    """Render the hero section — logo badge, title, subtitle."""
     st.markdown("""
     <div class="rr-hero rr-animate">
-        <div class="rr-logo">🔥</div>
+        <div class="rr-logo-badge">🔥</div>
         <h1 class="rr-title">Resume Roaster</h1>
         <p class="rr-subtitle">
             If it's good, I'll respect it.<br>
@@ -40,11 +39,11 @@ def render_hero() -> None:
     """, unsafe_allow_html=True)
 
 
-# ── Score Cards (Apple / Notion Minimal Style) ───────────────
+# ── Score Cards (Apple / Notion Minimal Layered Style) ────────
 
 def render_score_cards(resume_score: int, ats_score: int) -> None:
     """
-    Render Apple/Notion-style minimal dual score cards.
+    Render Apple/Notion-style minimal dual score cards with depth.
 
     Args:
         resume_score: Overall resume score (0–100).
@@ -115,68 +114,9 @@ def render_analysis_steps(current_step_index: int = 0) -> None:
 # ── Section Header ────────────────────────────────────────────
 
 def render_section_header(title: str) -> None:
-    """Render a clean, minimal section header."""
+    """Render a clean section header."""
     st.markdown(
         f'<div class="rr-section-header">{title}</div>',
-        unsafe_allow_html=True
-    )
-
-
-# ── Strengths ─────────────────────────────────────────────────
-
-def render_strengths(strengths: list[str]) -> None:
-    """Render the strengths list."""
-    render_section_header(f"Strengths &nbsp;·&nbsp; {len(strengths)} found")
-
-    if not strengths:
-        st.markdown(
-            '<div class="rr-info">No clear strengths detected in the resume.</div>',
-            unsafe_allow_html=True
-        )
-        return
-
-    items_html = ""
-    for s in strengths:
-        items_html += f"""
-        <div class="rr-strength-item rr-animate">
-            <span class="rr-strength-dot"></span>{s}
-        </div>"""
-
-    st.markdown(items_html, unsafe_allow_html=True)
-
-
-# ── Weaknesses ────────────────────────────────────────────────
-
-def render_weaknesses(weaknesses: list) -> None:
-    """Render the weaknesses list."""
-    render_section_header(f"Weaknesses &nbsp;·&nbsp; {len(weaknesses)} found")
-
-    if not weaknesses:
-        st.markdown(
-            '<div class="rr-info">No major weaknesses detected. Strong resume!</div>',
-            unsafe_allow_html=True
-        )
-        return
-
-    items_html = ""
-    for w in weaknesses:
-        items_html += f"""
-        <div class="rr-weakness-item rr-animate">
-            <span class="rr-weakness-dot"></span>
-            <span class="rr-weakness-label">{w.label}</span>
-            <span class="rr-weakness-reason">{w.reason}</span>
-        </div>"""
-
-    st.markdown(items_html, unsafe_allow_html=True)
-
-
-# ── Overall Feedback ──────────────────────────────────────────
-
-def render_overall_feedback(feedback_text: str) -> None:
-    """Render overall feedback card."""
-    render_section_header("Overall Feedback")
-    st.markdown(
-        f'<div class="rr-feedback-card rr-animate">{feedback_text}</div>',
         unsafe_allow_html=True
     )
 
@@ -227,7 +167,7 @@ def render_multi_resume_banner(resumes: list[dict]) -> tuple[bool, bool, int]:
 
 def render_divider() -> None:
     """Render a subtle divider line."""
-    st.markdown('<hr style="border:none; border-top:1px solid #E5E5E0; margin:2rem 0;">', unsafe_allow_html=True)
+    st.markdown('<hr style="border:none; border-top:1px solid #E2E8F0; margin:2rem 0;">', unsafe_allow_html=True)
 
 
 def render_error(message: str) -> None:

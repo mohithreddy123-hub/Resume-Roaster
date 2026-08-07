@@ -1,74 +1,65 @@
 /* =============================================================
-   Resume Roaster — Premium Light Theme Stylesheet
-   Design Philosophy: Apple / Notion minimalist elegance
-   Palette:
-     Canvas:               #FAFAF8
-     Cards:                #FFFFFF
-     Secondary Canvas:     #F4F4F2
-     Primary Text:         #1F1F1F
-     Secondary Text:       #666666
-     Muted Text:           #8E8E93
-     Accent / Fire:        #FF6A00
-     Accent Hover:         #E55F00
-     Accent Soft:          rgba(255, 106, 0, 0.08)
-     Border:               #E5E5E0
-     Border Glow:          #D1D1CB
-     Success / Green:      #22C55E
-     Success Soft:         rgba(34, 197, 94, 0.08)
-     Warning / Amber:      #F59E0B
-     Warning Soft:         rgba(245, 158, 11, 0.08)
-     Danger / Roast / Red: #EF4444
-     Danger Soft:          rgba(239, 68, 68, 0.08)
-   Font: Inter / Apple System Font stack
+   Resume Roaster — Multi-Layered Premium Theme
+   Canvas: Warm off-white (#F8F7F4)
+   Cards: Distinct neutral layering (#FFFFFF / #F1F3F5)
+   Headings: Deep Charcoal/Navy (#1E293B)
+   Accent: Signature Fire Orange (#FF6A00)
+   Font: Inter / Apple System stack
    ============================================================= */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-/* ── Root Variables ─────────────────────────────────────────── */
+/* ── Root Color System & Tokens ─────────────────────────────── */
 :root {
-  --bg-primary:        #FAFAF8;
-  --bg-secondary:      #F4F4F2;
-  --bg-card:           #FFFFFF;
-  --bg-hover:          #F0F0EC;
-  --border:            #E5E5E0;
-  --border-strong:     #D1D1CB;
+  --bg-primary:        #F8F7F4;       /* Warm off-white canvas */
+  --bg-secondary:      #F1F3F5;       /* Neutral gray for secondary sections */
+  --bg-card:           #FFFFFF;       /* Crisp white for layered cards */
+  --bg-hover:          #EAECEE;
 
-  --accent-primary:    #FF6A00;
+  --text-heading:      #1E293B;       /* Dark charcoal/navy for headings */
+  --text-body:         #334155;       /* Slate body text */
+  --text-muted:        #64748B;       /* Muted secondary text */
+
+  --accent-primary:    #FF6A00;       /* Signature Orange */
   --accent-hover:      #E55F00;
-  --accent-glow:       rgba(255, 106, 0, 0.12);
+  --accent-gradient:   linear-gradient(135deg, #FF6A00 0%, #FF8533 100%);
+  --accent-soft:       rgba(255, 106, 0, 0.08);
+  --accent-glow:       rgba(255, 106, 0, 0.16);
 
-  --green:             #22C55E;
-  --green-bg:          rgba(34, 197, 94, 0.07);
-  --green-border:      rgba(34, 197, 94, 0.22);
+  --border-light:      #E2E8F0;       /* Subtle slate border */
+  --border-medium:     #CBD5E1;       /* Medium border */
+  --border-accent:     rgba(255, 106, 0, 0.35);
+
+  --green:             #10B981;
+  --green-bg:          rgba(16, 185, 129, 0.08);
+  --green-border:      rgba(16, 185, 129, 0.25);
 
   --amber:             #F59E0B;
-  --amber-bg:          rgba(245, 158, 11, 0.07);
-  --amber-border:      rgba(245, 158, 11, 0.22);
+  --amber-bg:          rgba(245, 158, 11, 0.08);
+  --amber-border:      rgba(245, 158, 11, 0.25);
 
   --red:               #EF4444;
-  --red-bg:            rgba(239, 68, 68, 0.07);
-  --red-border:        rgba(239, 68, 68, 0.22);
-
-  --text-primary:      #1F1F1F;
-  --text-secondary:    #666666;
-  --text-muted:        #8E8E93;
+  --red-bg:            rgba(239, 68, 68, 0.08);
+  --red-border:        rgba(239, 68, 68, 0.25);
 
   --font:              'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
   --radius-sm:         8px;
-  --radius:            12px;
-  --radius-lg:         18px;
-  --radius-xl:         24px;
-  --shadow-sm:         0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
-  --shadow:            0 4px 12px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.03);
-  --shadow-lg:         0 10px 25px rgba(0, 0, 0, 0.07), 0 4px 10px rgba(0, 0, 0, 0.04);
-  --transition:        all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  --radius:            14px;
+  --radius-lg:         20px;
+  --radius-xl:         26px;
+
+  --shadow-sm:         0 2px 4px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.02);
+  --shadow-md:         0 8px 20px -4px rgba(0, 0, 0, 0.06), 0 3px 8px -2px rgba(0, 0, 0, 0.03);
+  --shadow-hero:       0 18px 40px -8px rgba(30, 41, 59, 0.08), 0 6px 16px -4px rgba(255, 106, 0, 0.12);
+  --transition:        all 0.24s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* ── Global Reset & Font ────────────────────────────────────── */
+/* ── Global Reset ───────────────────────────────────────────── */
 html, body, [class*="css"] {
   font-family: var(--font) !important;
   background-color: var(--bg-primary) !important;
-  color: var(--text-primary) !important;
+  color: var(--text-body) !important;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -93,40 +84,46 @@ header,
   padding: 0 !important;
 }
 
-/* ── Main Layout Container ──────────────────────────────────── */
+/* ── Main Canvas Layout Container ───────────────────────────── */
 .block-container {
-  max-width: 860px !important;
-  padding: 2.5rem 1.5rem 4rem 1.5rem !important;
+  max-width: 880px !important;
+  padding: 3rem 1.75rem 5rem 1.75rem !important;
   margin: 0 auto !important;
 }
 
 /* ── Landing Page Hero Section ──────────────────────────────── */
 .rr-hero {
   text-align: center;
-  padding: 3.5rem 1rem 2rem 1rem;
+  padding: 2.5rem 1rem 2rem 1rem;
 }
 
-.rr-logo {
-  font-size: 3.8rem;
-  line-height: 1;
-  margin-bottom: 0.8rem;
-  display: inline-block;
-  filter: drop-shadow(0 4px 12px rgba(255, 106, 0, 0.25));
+.rr-logo-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 22px;
+  font-size: 2.4rem;
+  margin-bottom: 1rem;
+  box-shadow: var(--shadow-md);
 }
 
 .rr-title {
-  font-size: 3rem;
+  font-size: 3.2rem;
   font-weight: 800;
   letter-spacing: -0.04em;
-  color: var(--text-primary);
+  color: var(--text-heading);
   margin: 0;
-  line-height: 1.15;
+  line-height: 1.1;
 }
 
 .rr-subtitle {
   font-size: 1.15rem;
-  color: var(--text-secondary);
-  margin-top: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 0.9rem;
   line-height: 1.6;
   font-weight: 400;
   max-width: 520px;
@@ -134,31 +131,72 @@ header,
   margin-right: auto;
 }
 
-/* ── Custom File Uploader Component ─────────────────────────── */
+/* ── Hero Upload Card (Stands out distinctly) ───────────────── */
+.rr-upload-card {
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-light);
+  border-radius: var(--radius-xl);
+  padding: 2.5rem 2.25rem;
+  margin-top: 1.75rem;
+  box-shadow: var(--shadow-hero);
+  transition: var(--transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.rr-upload-card:hover {
+  border-color: var(--accent-primary);
+  box-shadow: 0 22px 48px -10px rgba(30, 41, 59, 0.12), 0 8px 24px -4px rgba(255, 106, 0, 0.18);
+}
+
+.rr-upload-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.rr-upload-icon-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  height: 54px;
+  background: var(--accent-soft);
+  color: var(--accent-primary);
+  border-radius: 16px;
+  font-size: 1.6rem;
+  margin-bottom: 0.75rem;
+}
+
+.rr-upload-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  margin: 0;
+}
+
+.rr-upload-subtitle {
+  font-size: 0.92rem;
+  color: var(--text-muted);
+  margin-top: 0.3rem;
+}
+
+/* ── Streamlit File Uploader Overrides ──────────────────────── */
 [data-testid="stFileUploader"] {
-  background: var(--bg-card) !important;
-  border: 2px dashed var(--border) !important;
+  background: var(--bg-secondary) !important;
+  border: 2px dashed var(--border-medium) !important;
   border-radius: var(--radius-lg) !important;
-  padding: 2rem 1.5rem !important;
+  padding: 2.25rem 1.5rem !important;
   text-align: center !important;
   transition: var(--transition) !important;
-  box-shadow: var(--shadow-sm) !important;
 }
 
 [data-testid="stFileUploader"]:hover {
   border-color: var(--accent-primary) !important;
   background: var(--accent-soft) !important;
-  box-shadow: var(--shadow) !important;
-}
-
-[data-testid="stFileUploaderDropzone"] {
-  background: transparent !important;
-  border: none !important;
-  padding: 0 !important;
 }
 
 [data-testid="stFileUploaderDropzone"] label {
-  color: var(--text-primary) !important;
+  color: var(--text-heading) !important;
   font-weight: 600 !important;
   font-size: 1.05rem !important;
 }
@@ -168,380 +206,202 @@ header,
   font-size: 0.88rem !important;
 }
 
-/* Streamlit Upload Button */
 [data-testid="stFileUploader"] button {
-  background-color: var(--bg-secondary) !important;
-  color: var(--text-primary) !important;
-  border: 1px solid var(--border) !important;
+  background-color: var(--bg-card) !important;
+  color: var(--text-heading) !important;
+  border: 1px solid var(--border-light) !important;
   border-radius: var(--radius-sm) !important;
-  font-weight: 500 !important;
-  padding: 0.45rem 1rem !important;
+  font-weight: 600 !important;
+  padding: 0.5rem 1.1rem !important;
+  box-shadow: var(--shadow-sm) !important;
   transition: var(--transition) !important;
 }
 
 [data-testid="stFileUploader"] button:hover {
-  background-color: var(--border) !important;
-  color: var(--text-primary) !important;
-}
-
-/* Custom Upload Card Box */
-.rr-upload-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
-  padding: 2.25rem 2rem;
-  margin-top: 1.5rem;
-  box-shadow: var(--shadow);
-  transition: var(--transition);
-}
-
-.rr-upload-card:hover {
-  box-shadow: var(--shadow-lg);
-  border-color: var(--border-strong);
-}
-
-.rr-upload-header {
-  text-align: center;
-  margin-bottom: 1.25rem;
-}
-
-.rr-upload-icon {
-  font-size: 2.2rem;
-  margin-bottom: 0.4rem;
-  color: var(--accent-primary);
-}
-
-.rr-upload-title {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.rr-upload-subtitle {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  margin-top: 0.25rem;
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--border-medium) !important;
 }
 
 /* ── Primary Action Buttons ─────────────────────────────────── */
 .stButton > button {
-  background-color: var(--accent-primary) !important;
+  background: var(--accent-gradient) !important;
   color: #FFFFFF !important;
   border: none !important;
   border-radius: var(--radius-sm) !important;
   font-family: var(--font) !important;
-  font-weight: 600 !important;
-  font-size: 0.98rem !important;
-  padding: 0.7rem 1.6rem !important;
+  font-weight: 700 !important;
+  font-size: 1rem !important;
+  padding: 0.75rem 1.8rem !important;
   transition: var(--transition) !important;
   cursor: pointer !important;
   letter-spacing: 0.01em !important;
-  box-shadow: 0 2px 8px rgba(255, 106, 0, 0.25) !important;
+  box-shadow: 0 4px 14px rgba(255, 106, 0, 0.3) !important;
 }
 
 .stButton > button:hover {
-  background-color: var(--accent-hover) !important;
-  transform: translateY(-1px) !important;
-  box-shadow: 0 4px 16px rgba(255, 106, 0, 0.35) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 24px rgba(255, 106, 0, 0.4) !important;
 }
 
 .stButton > button:active {
   transform: translateY(0) !important;
-  box-shadow: 0 1px 4px rgba(255, 106, 0, 0.2) !important;
+  box-shadow: 0 2px 8px rgba(255, 106, 0, 0.25) !important;
 }
 
-.stButton > button:disabled {
-  background-color: var(--border) !important;
-  color: var(--text-muted) !important;
-  cursor: not-allowed !important;
-  transform: none !important;
-  box-shadow: none !important;
-}
-
-/* Secondary Button Style */
-.rr-btn-secondary button {
-  background-color: var(--bg-card) !important;
-  color: var(--text-primary) !important;
-  border: 1px solid var(--border) !important;
-  box-shadow: var(--shadow-sm) !important;
-}
-
-.rr-btn-secondary button:hover {
-  background-color: var(--bg-secondary) !important;
-  border-color: var(--border-strong) !important;
-  box-shadow: var(--shadow) !important;
-}
-
-/* ── Apple / Notion Minimal Score Cards ─────────────────────── */
+/* ── Layered Score Cards (Apple/Notion Minimal) ─────────────── */
 .rr-scores-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1.25rem;
-  margin: 1.75rem 0;
+  gap: 1.35rem;
+  margin: 1.85rem 0;
 }
 
 .rr-score-card {
   background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1.4rem 1.6rem;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 1.6rem 1.8rem;
   text-align: center;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-md);
   transition: var(--transition);
 }
 
 .rr-score-card:hover {
-  border-color: var(--border-strong);
-  box-shadow: var(--shadow);
+  border-color: var(--border-medium);
+  box-shadow: var(--shadow-hero);
   transform: translateY(-2px);
 }
 
 .rr-score-number {
-  font-size: 3.2rem;
+  font-size: 3.4rem;
   font-weight: 800;
-  letter-spacing: -0.04em;
+  letter-spacing: -0.05em;
   line-height: 1;
-  color: var(--text-primary);
+  color: var(--text-heading);
 }
 
 .rr-score-label {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-top: 0.5rem;
+  letter-spacing: 0.09em;
+  margin-top: 0.55rem;
 }
 
 .rr-score-sublabel {
   font-size: 0.78rem;
   color: var(--text-muted);
-  margin-top: 0.2rem;
+  margin-top: 0.25rem;
 }
 
-/* ── Textarea / Form Controls ───────────────────────────────── */
-.stTextArea textarea {
-  background-color: var(--bg-card) !important;
-  color: var(--text-primary) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: var(--radius-sm) !important;
-  font-family: var(--font) !important;
-  font-size: 0.92rem !important;
-  padding: 0.8rem 1rem !important;
-  transition: var(--transition) !important;
-}
-
-.stTextArea textarea:focus {
-  border-color: var(--accent-primary) !important;
-  box-shadow: 0 0 0 3px var(--accent-glow) !important;
-}
-
-/* ── Analysis Step Progress Component ──────────────────────── */
-.rr-progress-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1.5rem;
-  margin: 1.5rem 0;
-  box-shadow: var(--shadow-sm);
-}
-
-.rr-progress-step {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.5rem 0;
-  color: var(--text-secondary);
-  font-size: 0.92rem;
-  transition: var(--transition);
-}
-
-.rr-progress-step.active {
-  color: var(--text-primary);
-  font-weight: 600;
-}
-
-.rr-progress-step.done {
-  color: var(--green);
-}
-
-.rr-progress-spinner {
-  width: 14px;
-  height: 14px;
-  border: 2px solid var(--accent-primary);
-  border-top-color: transparent;
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-/* ── Recruiter Opening Card ─────────────────────────────────── */
+/* ── Recruiter Opening Banner ───────────────────────────────── */
 .rr-opening-card {
   background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-left: 4px solid var(--accent-primary);
-  border-radius: var(--radius-sm);
-  padding: 1.25rem 1.5rem;
-  margin-bottom: 1.5rem;
-  box-shadow: var(--shadow-sm);
-  font-size: 1.02rem;
-  line-height: 1.7;
-  color: var(--text-primary);
-}
-
-/* ── Chat Messages (Conversation Stream) ────────────────────── */
-.rr-msg-user {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 1.25rem;
-}
-
-.rr-msg-user-bubble {
-  background-color: var(--accent-primary);
-  color: #FFFFFF;
-  border-radius: 18px 18px 4px 18px;
-  padding: 0.8rem 1.2rem;
-  max-width: 78%;
-  font-size: 0.95rem;
-  line-height: 1.55;
-  box-shadow: 0 2px 8px rgba(255, 106, 0, 0.2);
-}
-
-.rr-msg-ai {
-  display: flex;
-  justify-content: flex-start;
-  margin-bottom: 1.25rem;
-}
-
-.rr-msg-ai-bubble {
-  background-color: var(--bg-card);
-  border: 1px solid var(--border);
-  color: var(--text-primary);
-  border-radius: 18px 18px 18px 4px;
-  padding: 1rem 1.3rem;
-  max-width: 88%;
-  font-size: 0.95rem;
-  line-height: 1.7;
-  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-light);
+  border-left: 5px solid var(--accent-primary);
+  border-radius: var(--radius);
+  padding: 1.4rem 1.75rem;
+  margin-bottom: 1.75rem;
+  box-shadow: var(--shadow-md);
+  font-size: 1.05rem;
+  line-height: 1.75;
+  color: var(--text-heading);
+  font-weight: 500;
 }
 
 /* ── Follow-Up Questions Card ───────────────────────────────── */
 .rr-followup-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-left: 3px solid #6366F1;
-  border-radius: var(--radius-sm);
-  padding: 1.25rem 1.5rem;
-  margin-top: 1.75rem;
-  margin-bottom: 1.25rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-left: 4px solid #6366F1;
+  border-radius: var(--radius);
+  padding: 1.4rem 1.75rem;
+  margin-top: 2rem;
+  margin-bottom: 1.5rem;
   box-shadow: var(--shadow-sm);
 }
 
 .rr-followup-title {
   font-weight: 700;
-  color: #4F46E5;
-  margin-bottom: 0.6rem;
-  font-size: 0.95rem;
-}
-
-/* ── Multiple Resume Comparison Banner ───────────────────────── */
-.rr-multi-resume-banner {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-left: 4px solid var(--accent-primary);
-  border-radius: var(--radius);
-  padding: 1.25rem 1.5rem;
-  margin: 1.25rem 0;
-  box-shadow: var(--shadow-sm);
-}
-
-.rr-multi-resume-title {
-  font-weight: 700;
+  color: #4338CA;
+  margin-bottom: 0.75rem;
   font-size: 1rem;
-  color: var(--text-primary);
-  margin-bottom: 0.4rem;
 }
 
-.rr-multi-resume-desc {
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-  margin-bottom: 1rem;
+/* ── Conversation Bubbles ───────────────────────────────────── */
+.rr-msg-user {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1.35rem;
 }
 
-/* ── Sidebar Custom Styling (Conversation History) ───────────── */
+.rr-msg-user-bubble {
+  background: var(--accent-gradient);
+  color: #FFFFFF;
+  border-radius: 20px 20px 4px 20px;
+  padding: 0.85rem 1.35rem;
+  max-width: 78%;
+  font-size: 0.96rem;
+  line-height: 1.6;
+  font-weight: 500;
+  box-shadow: 0 4px 14px rgba(255, 106, 0, 0.22);
+}
+
+.rr-msg-ai {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 1.35rem;
+}
+
+.rr-msg-ai-bubble {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-light);
+  color: var(--text-body);
+  border-radius: 20px 20px 20px 4px;
+  padding: 1.1rem 1.4rem;
+  max-width: 88%;
+  font-size: 0.96rem;
+  line-height: 1.75;
+  box-shadow: var(--shadow-md);
+}
+
+.rr-msg-ai-bubble h2,
+.rr-msg-ai-bubble h3 {
+  color: var(--text-heading) !important;
+  font-weight: 700 !important;
+  margin-top: 1rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+/* ── Sidebar (Left History Panel) ───────────────────────────── */
 [data-testid="stSidebar"] {
   background-color: var(--bg-card) !important;
-  border-right: 1px solid var(--border) !important;
+  border-right: 1px solid var(--border-light) !important;
 }
 
 [data-testid="stSidebar"] .block-container {
-  padding: 1.5rem 1rem !important;
+  padding: 1.75rem 1.1rem !important;
 }
 
 .rr-sidebar-header {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
   color: var(--text-muted);
-  margin: 1.25rem 0 0.6rem 0.5rem;
+  margin: 1.35rem 0 0.65rem 0.4rem;
 }
 
-.rr-sidebar-item {
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  padding: 0.6rem 0.8rem;
-  margin-bottom: 0.3rem;
-  font-size: 0.88rem;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: var(--transition);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.rr-sidebar-item:hover,
-.rr-sidebar-item.active {
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-  border-color: var(--border);
-}
-
-/* ── Chat Input Overrides ───────────────────────────────────── */
-[data-testid="stChatInput"] {
-  background-color: var(--bg-card) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: var(--radius) !important;
-  box-shadow: var(--shadow) !important;
-  transition: var(--transition) !important;
-}
-
-[data-testid="stChatInput"]:focus-within {
-  border-color: var(--accent-primary) !important;
-  box-shadow: 0 0 0 3px var(--accent-glow) !important;
-}
-
-[data-testid="stChatInput"] textarea {
-  color: var(--text-primary) !important;
-  font-family: var(--font) !important;
-  font-size: 0.95rem !important;
-}
-
-/* ── Info & Error Boxes ─────────────────────────────────────── */
+/* ── Info & Error Cards ─────────────────────────────────────── */
 .rr-info {
   background: var(--bg-card);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-light);
   border-radius: var(--radius-sm);
-  padding: 0.8rem 1.1rem;
-  color: var(--text-secondary);
-  font-size: 0.88rem;
-  margin: 0.75rem 0;
+  padding: 0.85rem 1.2rem;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin: 0.85rem 0;
   box-shadow: var(--shadow-sm);
 }
 
@@ -549,35 +409,47 @@ header,
   background: var(--red-bg);
   border: 1px solid var(--red-border);
   border-radius: var(--radius-sm);
-  padding: 0.9rem 1.2rem;
+  padding: 1rem 1.3rem;
   color: var(--red);
-  font-size: 0.9rem;
-  font-weight: 500;
-  margin: 1rem 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+  margin: 1.1rem 0;
+  box-shadow: var(--shadow-sm);
+}
+
+/* ── Chat Input Control ─────────────────────────────────────── */
+[data-testid="stChatInput"] {
+  background-color: var(--bg-card) !important;
+  border: 1.5px solid var(--border-light) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-md) !important;
+  transition: var(--transition) !important;
+}
+
+[data-testid="stChatInput"]:focus-within {
+  border-color: var(--accent-primary) !important;
+  box-shadow: 0 0 0 4px var(--accent-glow) !important;
+}
+
+[data-testid="stChatInput"] textarea {
+  color: var(--text-heading) !important;
+  font-family: var(--font) !important;
+  font-size: 0.96rem !important;
 }
 
 /* ── Animations ──────────────────────────────────────────────── */
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
 .rr-animate {
-  animation: fadeInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeInUp 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
-
-/* ── Scrollbars ──────────────────────────────────────────────── */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--bg-primary); }
-::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
 
 /* ── Responsive adjustments ─────────────────────────────────── */
 @media (max-width: 640px) {
-  .rr-title { font-size: 2.2rem; }
+  .rr-title { font-size: 2.3rem; }
   .rr-scores-row { grid-template-columns: 1fr; }
-  .block-container { padding: 1.25rem 1rem !important; }
+  .block-container { padding: 1.5rem 1rem !important; }
 }

@@ -3,7 +3,7 @@
 """
 ui/upload.py
 ------------
-Upload component — handles modern custom file upload UI, validation display,
+Upload component — handles custom hero file upload box UI, validation display,
 optional job description input, and primary trigger button.
 No parsing logic here — only UI rendering.
 """
@@ -14,10 +14,10 @@ from config import MAX_FILE_SIZE_MB
 
 def render_upload_section() -> tuple[bytes | None, str | None, str]:
     """
-    Render the custom file upload section of the landing page.
+    Render the custom file upload hero section of the landing page.
 
     Displays:
-        - Modern upload dropzone card with custom icons & clean tags
+        - Standout hero upload card with icon badge and clear hierarchy
         - Streamlit drag & drop file uploader
         - Optional Job Description toggle / input
         - Primary "🔥 Analyze Resume" button
@@ -29,7 +29,7 @@ def render_upload_section() -> tuple[bytes | None, str | None, str]:
     st.markdown("""
     <div class="rr-upload-card rr-animate">
         <div class="rr-upload-header">
-            <div class="rr-upload-icon">📄</div>
+            <div class="rr-upload-icon-badge">📄</div>
             <div class="rr-upload-title">Drop your resume here</div>
             <div class="rr-upload-subtitle">PDF or DOCX &nbsp;·&nbsp; up to 10MB</div>
         </div>
@@ -59,7 +59,7 @@ def render_upload_section() -> tuple[bytes | None, str | None, str]:
     )
 
     st.markdown(f"""
-    <div class="rr-info rr-animate" style="margin-top: 0.85rem; text-align: center;">
+    <div class="rr-info rr-animate" style="margin-top: 1rem; text-align: center;">
         📄 <strong>{filename}</strong> &nbsp;·&nbsp; {file_size_display} &nbsp;✓ Ready to analyze
     </div>
     """, unsafe_allow_html=True)
