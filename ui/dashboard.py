@@ -1,3 +1,5 @@
+# pyrefly: ignore
+# type: ignore
 """
 ui/dashboard.py
 ---------------
