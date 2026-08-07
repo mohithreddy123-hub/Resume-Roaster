@@ -90,8 +90,8 @@ SECTION_PATTERNS: dict[str, list[str]] = {
 # ─── Gemini Model ─────────────────────────────────────────────────────────────
 
 GEMINI_MODEL: str = "gemini-flash-latest"
-GEMINI_MAX_RETRIES: int = 5
-GEMINI_RETRY_DELAY_SECONDS: int = 4
+GEMINI_MAX_RETRIES: int = 6          # up to ~3 min of exponential backoff for rate limits
+GEMINI_RETRY_DELAY_SECONDS: int = 10 # base delay — actual wait = delay * 2^attempt
 
 # ─── Strength & Weakness Limits ───────────────────────────────────────────────
 

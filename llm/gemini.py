@@ -1,13 +1,15 @@
+# pyrefly: ignore
 """
 llm/gemini.py
 -------------
 Gemini API wrapper for Resume Roaster.
 Handles: initialization, sending messages, conversation history,
-retries on failure, and clean error reporting.
+exponential backoff retries on rate limits, and clean error reporting.
 No prompt logic lives here — only the API communication layer.
 """
 
 import time
+import random
 import google.generativeai as genai
 from google.api_core.exceptions import (
     ResourceExhausted,
@@ -25,6 +27,11 @@ load_dotenv(override=True)
 
 class GeminiError(Exception):
     """Raised when Gemini API fails after all retries."""
+    pass
+
+
+class GeminiRateLimitError(GeminiError):
+    """Raised specifically when the API is rate-limited after all retries."""
     pass
 
 
@@ -82,6 +89,19 @@ def _initialize_model(json_mode: bool = False) -> genai.GenerativeModel:
         ) from e
 
 
+def _exponential_backoff(attempt: int, base: int) -> float:
+    """
+    Calculate exponential backoff with jitter.
+
+    Wait = base * 2^(attempt-1) + random jitter (0-2 seconds).
+    Example with base=10: 10s, 20s, 40s, 80s, 160s...
+    Capped at 120 seconds per wait to avoid unreasonably long hangs.
+    """
+    wait = min(base * (2 ** (attempt - 1)), 120)
+    jitter = random.uniform(0, 2)
+    return wait + jitter
+
+
 def send_message(
     system_prompt: str,
     user_message: str,
@@ -90,6 +110,7 @@ def send_message(
 ) -> str:
     """
     Send a message to Gemini and return the response text.
+    Retries automatically on rate limits with exponential backoff.
 
     Args:
         system_prompt:        The AI personality and behavior instructions.
@@ -103,13 +124,13 @@ def send_message(
 
     Raises:
         GeminiAPIKeyMissingError: If the API key is not set.
-        GeminiError:              If all retries are exhausted.
+        GeminiRateLimitError:     If rate limited after all retries.
+        GeminiError:              If all retries are exhausted for other reasons.
     """
     model = _initialize_model(json_mode=json_mode)
     history = conversation_history or []
 
     # Build Gemini-compatible chat history
-    # Gemini uses "user" and "model" as role names
     gemini_history = []
     for entry in history:
         role = entry.get("role", "user")
@@ -121,11 +142,7 @@ def send_message(
     chat = model.start_chat(history=gemini_history)
 
     # Combine system prompt with user message
-    # Gemini Flash doesn't have a dedicated system role in basic API,
-    # so we prepend the system prompt to the first user message cleanly.
     full_message = f"{system_prompt}\n\n---\n\n{user_message}"
-
-    last_error: Exception | None = None
 
     for attempt in range(1, GEMINI_MAX_RETRIES + 1):
         try:
@@ -133,19 +150,24 @@ def send_message(
             return response.text
 
         except ResourceExhausted as e:
-            last_error = e
+            # 429 Rate limit — wait with exponential backoff then retry
             if attempt < GEMINI_MAX_RETRIES:
-                time.sleep(GEMINI_RETRY_DELAY_SECONDS * attempt)
+                wait_seconds = _exponential_backoff(attempt, GEMINI_RETRY_DELAY_SECONDS)
+                time.sleep(wait_seconds)
+                # Reset chat for next attempt to avoid stale session state
+                chat = model.start_chat(history=gemini_history)
             else:
-                raise GeminiError(
-                    "Too many requests to the AI service. "
+                raise GeminiRateLimitError(
+                    "The AI service is rate-limited right now. "
+                    "This usually clears in 30–60 seconds. "
                     "Please wait a moment and try again."
                 ) from e
 
         except ServiceUnavailable as e:
-            last_error = e
             if attempt < GEMINI_MAX_RETRIES:
-                time.sleep(GEMINI_RETRY_DELAY_SECONDS * attempt)
+                wait_seconds = _exponential_backoff(attempt, GEMINI_RETRY_DELAY_SECONDS)
+                time.sleep(wait_seconds)
+                chat = model.start_chat(history=gemini_history)
             else:
                 raise GeminiError(
                     "The AI service is temporarily unavailable. "
