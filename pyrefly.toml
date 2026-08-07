@@ -1,0 +1,8 @@
+[pyrefly]
+# Exclude files whose string literals contain natural-language prompt text.
+# Pyrefly tries to parse those strings as Python code and produces hundreds of false errors.
+project_excludes = [
+    "prompts/",
+    "analyzer/score.py",
+    "analyzer/ats.py",
+]

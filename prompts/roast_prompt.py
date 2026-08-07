@@ -1,3 +1,4 @@
+# pyrefly: ignore
 """
 prompts/roast_prompt.py
 -----------------------

@@ -1,3 +1,4 @@
+# pyrefly: ignore
 """
 prompts/json_schema.py
 ----------------------

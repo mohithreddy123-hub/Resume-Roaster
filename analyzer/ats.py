@@ -1,3 +1,4 @@
+# pyrefly: ignore
 """
 analyzer/ats.py
 ---------------
