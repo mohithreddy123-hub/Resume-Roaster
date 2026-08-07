@@ -417,6 +417,35 @@ header,
   box-shadow: var(--shadow-sm);
 }
 
+/* ── Expander (Dark Highlight Styling for Target Job Description) ── */
+[data-testid="stExpander"] {
+  background-color: #1E293B !important;
+  border: 1px solid #334155 !important;
+  border-radius: var(--radius) !important;
+  color: #F8FAFC !important;
+  margin-top: 1.25rem !important;
+  box-shadow: var(--shadow-md) !important;
+  overflow: hidden !important;
+}
+
+[data-testid="stExpander"] summary {
+  background-color: #1E293B !important;
+  color: #F8FAFC !important;
+  font-weight: 600 !important;
+  font-size: 0.95rem !important;
+  padding: 0.85rem 1.2rem !important;
+}
+
+[data-testid="stExpander"] summary:hover {
+  color: var(--accent-primary) !important;
+}
+
+[data-testid="stExpander"] textarea {
+  background-color: #0F172A !important;
+  color: #F8FAFC !important;
+  border: 1px solid #334155 !important;
+}
+
 /* ── Chat Input Control ─────────────────────────────────────── */
 [data-testid="stChatInput"] {
   background-color: var(--bg-card) !important;
