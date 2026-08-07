@@ -1,8 +1,8 @@
 """
 prompts/json_schema.py
 ----------------------
-Defines category-specific JSON schema instructions for Gemini responses.
-Controls structure, tone, and scannability of the initial recruiter review.
+Defines category-specific JSON schema instructions for Gemini's initial review.
+Controls exact response structure, section headings, tone, and content rules.
 """
 
 import json
@@ -11,69 +11,74 @@ import re
 
 def get_json_schema_instructions(category: str) -> str:
     """
-    Return category-specific JSON schema instructions for Gemini.
+    Return schema instructions for Gemini's initial resume review.
 
-    The first response after uploading a resume must feel like a real
-    recruiter who has genuinely read the document from top to bottom.
-    The user should think: "This AI actually read my resume."
+    Every initial response must follow this exact flow:
+        1. opening           — 2-4 lines, recruiter just finished reading
+        2. review_markdown   — ## Strengths, ## What's Holding This Resume Back,
+                               ## What I'd Fix First (in that exact order, stops there)
+        3. follow_up_questions — 2-3 resume-specific questions, never generic
     """
     if category == "Bad":
         schema_text = """{
-  "opening": "<2-4 natural lines. The recruiter has just finished reading and needs more information before proceeding. Reference something specific that IS present in the resume — even if the overall content is sparse. Sound like a real person, not a system message.>",
-  "review_markdown": "### Before I Can Give You a Real Review\\n\\nThere are some critical gaps I need filled before this resume can be evaluated properly:\\n\\n<3-4 bullets naming the specific missing sections or details detected in THIS resume>",
+  "opening": "<2-4 natural lines. The recruiter just finished reading a sparse resume. Be honest and direct. Reference one thing that IS in the resume. Explain you need more information before giving a full review. Do NOT use section headings. Sound like a person, not a system message.>",
+  "review_markdown": "## Before I Can Give You a Real Review\\n\\n<3-4 bullet points naming the specific missing sections or information this resume is lacking. Be specific — reference what is actually missing from THIS resume, not a generic checklist.>",
   "follow_up_questions": [
-    "<Question about the most critical missing information — be specific about what IS in the resume and what's absent>",
-    "<Question about a second missing or unclear section>",
-    "<Question about something ambiguous or underdeveloped that you noticed>"
+    "<Question about the most critical missing information — specific to what you observed in this resume>",
+    "<Question about another missing or unclear section>",
+    "<Question about something ambiguous or underdeveloped>"
   ]
 }"""
     else:
         schema_text = """{
-  "opening": "<REQUIRED. 2-4 natural, conversational lines. This is the recruiter speaking after genuinely reading the resume. Rules:\\n- Must reference at least ONE specific thing from this resume: a project name, a technology, a section, a specific claim.\\n- Tone must match quality: excellent resumes get genuine appreciation + one honest concern; average resumes get direct honesty; weak resumes get unflinching criticism.\\n- Vary the opening phrase naturally. Do NOT use the same opener every time. Examples of good openers (adapt, don't copy): 'I finished reading your resume and I have thoughts.' | 'I went through every section of this carefully.' | 'I've spent a few minutes with this resume, and here is what genuinely stood out.' | 'Alright, I have gone through this line by line. Let me be straight with you.'\\n- FORBIDDEN: 'Your resume has a solid technical foundation.' | 'I have reviewed your resume.' | 'Thank you for sharing.' | any opener that could apply to any resume without modification.>",
-  "review_markdown": "<Scannable Markdown. Follow this EXACT order, no deviations, no extra sections:\\n\\n### [Strengths heading — choose dynamically: 'What Stood Out' / 'What's Working' / 'What Impressed Me' / 'What I'd Keep']\\n<Bullet list. Number of bullets should match reality: 2-4 for excellent, 1-2 for average, 0-1 for weak. Each bullet MUST name a specific project, technology, achievement, or section from THIS resume. No bullet can be written without referencing actual resume content. Format: '• [Specific observation from resume] — [why this is strong]'>\\n\\n### [Weaknesses heading — choose dynamically: 'What's Holding This Resume Back' / 'What Made Me Pause' / 'What Recruiters Will Question' / 'Where I'd Push Back']\\n<Bullet list. This is the heart of the review. Number of bullets matches reality: 2-3 for excellent/good, 4-6 for average/weak. Each bullet has THREE parts in ONE concise statement: (1) what is wrong (specific, reference actual content), (2) why a recruiter would care, (3) what should change. Be direct. Do not soften valid criticism. Roast the resume, never the person. No corporate language. No filler. No 'consider improving'. Say: 'This doesn't convince me.' / 'This is wasting space.' / 'No recruiter believes this without evidence.'>\\n\\n### 🎯 What I'd Fix First\\n<2-3 sentences. ONE highest-priority action. Decisive and specific. Name the actual section or project to fix. Stop here — do not continue the review after this section.>",
+  "opening": "<REQUIRED. 2-4 conversational lines. The recruiter just finished reading this specific resume. Rules:\\n- Must feel like a real person speaking, not a system response.\\n- Must reference at least ONE specific thing from this resume: a project name, technology, section, or specific claim.\\n- Tone calibrated to quality: genuine appreciation for excellent, balanced honesty for good, direct criticism for average, unflinching assessment for weak.\\n- Vary the phrasing every time. Never use the same opener twice.\\n- FORBIDDEN openers: 'Your resume has a solid technical foundation.' | 'I have reviewed your resume.' | 'Thank you for sharing your resume.' | any sentence that could apply to any resume without modification.\\n- Good opener examples (do NOT copy — adapt to evidence): 'Alright, I finished reading this from top to bottom. Here is my honest take.' | 'I went through every section of this resume carefully. Let me tell you what I found.' | 'I spent a few minutes with this. [Specific project] caught my attention immediately — but then I hit the description and it fell flat.' | 'This resume is doing some things right and some things wrong. Let me be direct about both.'>",
+  "review_markdown": "<REQUIRED. Scannable Markdown following this EXACT structure — no extra sections, no reordering:\\n\\n## Strengths\\n\\n<Bullet list of genuine strengths. Count must match reality: 3-4 for excellent, 2-3 for good, 1-2 for average, 0-1 for weak. RULES:\\n- Every bullet MUST name a specific project, technology, achievement, or section from THIS resume.\\n- FORBIDDEN bullets: 'Good technical stack.' | 'Strong foundation.' | 'Nice projects.' | 'Demonstrates technical knowledge.' | any strength that could apply to any resume.\\n- Format each bullet: '• [Specific thing] — [why this is a genuine strength]'>\\n\\n## What's Holding This Resume Back\\n\\n<Bullet list of weaknesses. Count must match reality: 2-3 for excellent, 3-4 for good, 4-5 for average, 5-6 for weak. RULES:\\n- Speak like a witty, experienced recruiter — not an HR chatbot.\\n- Say things directly. Do NOT soften valid criticism.\\n- If a project description is poor, say it: 'What is this project description? You built something real and explained it in two sleepy lines.'\\n- If a summary is forgettable, say it: 'What is this summary? I finished reading it and still do not know why I should hire you.'\\n- CRITICAL: Always distinguish between the work itself and how it is written. If the project is good but the description is bad, say: 'The project is actually good. The description is the problem. You are making a genuinely good project look ordinary.'\\n- Every weakness covers: what is wrong + why a recruiter cares + what should change. Keep it sharp and direct.\\n- FORBIDDEN phrases: 'Needs improvement.' | 'Could be better.' | 'Consider enhancing.' | 'Looks fine but...' | 'This section could use some work.'\\n- Words to use naturally when evidence supports them: bad, weak, boring, confusing, forgettable, hurting, dragging down, wasting space.>\\n\\n## What I'd Fix First\\n\\n<2-3 sentences. ONE single highest-priority improvement. Not three. Not five. The ONE thing that would make the biggest difference. Be decisive and specific. Name the actual section or project. STOP HERE — do not add any closing remarks, encouragement, or additional content after this section.>",
   "follow_up_questions": [
-    "<REQUIRED. Question 1: Based on a specific gap, unclear claim, or missing evidence in THIS resume. Must reference an actual project name, technology, or section you observed. Examples: 'I noticed TenantVault is listed but no deployment info — was it ever live?' | 'Docker appears in your skills but I cannot find it used in any project. Did you forget to include something?' | 'I could not tell from the resume whether your internship at [company] involved any independent work — what specifically did you build there?'>",
-    "<REQUIRED. Question 2: A different specific observation — different topic from Question 1. Must reference actual resume content.>",
-    "<OPTIONAL. Question 3: Only include if a genuine third specific gap or ambiguity exists. If nothing meaningful remains, leave this as an empty string and it will be filtered out.>"
+    "<REQUIRED. A question based on a specific gap, unclear claim, or missing evidence observed in THIS resume. Must reference an actual project name, technology, section, or claim. Examples: 'I noticed Docker in your skills but could not find a project using it. Did you leave something out?' | 'You mentioned performance optimization in [project name]. Optimized compared to what? Do you have benchmarks?' | 'I could not tell whether [project name] was deployed anywhere or just developed locally. Which was it?'>",
+    "<REQUIRED. A different question based on a different specific observation from this resume.>",
+    "<OPTIONAL. A third question only if a genuine third gap or ambiguity exists. Otherwise leave empty string.>"
   ]
 }"""
 
     return f"""
-CRITICAL REQUIREMENT: RESPOND IN VALID JSON FORMAT ONLY.
-Do NOT wrap your response in markdown or add any text before or after the JSON object.
-Your output must be one parseable JSON object matching this schema exactly:
+RESPOND IN VALID JSON ONLY. No text before or after the JSON object. No markdown code fences.
+Output must be one parseable JSON object matching this schema exactly:
 
 {schema_text}
 
-━━━ ABSOLUTE RULES FOR THIS RESPONSE ━━━
+━━━ NON-NEGOTIABLE RULES ━━━
 
-RULE 1 — PROVE YOU READ THE RESUME:
-Every sentence in the opening and every strength bullet MUST reference something specific
-from the extracted resume content above. If you write a sentence that could describe any resume
-without modification, delete it and rewrite it with actual evidence from this resume.
+RULE 1 — THE OPENING MUST PROVE YOU READ THIS RESUME:
+The opening cannot be written without specific knowledge of this resume's content.
+If you could write the same opening for a different resume, rewrite it.
+Reference a project name, technology, section, or specific claim you actually saw.
 
-RULE 2 — THREE-PART WEAKNESS STRUCTURE:
-Every weakness bullet must cover: (1) what is wrong, (2) why a recruiter cares, (3) what to change.
-All three in one concise, direct statement. No bullet should be a single vague claim.
+RULE 2 — STRENGTHS MUST HAVE EVIDENCE:
+Every strength bullet must name something specific from this resume.
+No generic strength is acceptable. Not one.
 
-RULE 3 — STOP AFTER "WHAT I'D FIX FIRST":
-Do NOT continue the review beyond the "What I'd Fix First" section.
-Do NOT add closing remarks, encouragement, or additional sections in review_markdown.
-The follow_up_questions field handles the closing — not review_markdown.
+RULE 3 — WEAKNESSES MUST BE DIRECT AND HONEST:
+Speak like an experienced recruiter who has seen 10,000 resumes and has no patience for bad ones.
+Say what is wrong, why it matters, and what should change. In plain English. Without softening it.
+Do NOT use corporate HR language under any circumstances.
 
-RULE 4 — DYNAMIC POINT COUNT:
-Do NOT force a fixed number of strengths or weaknesses.
-Excellent resume: 3-4 strengths, 2-3 weaknesses.
-Good resume: 2-3 strengths, 3-4 weaknesses.
-Average resume: 1-2 strengths, 4-5 weaknesses.
-Weak resume: 0-1 strengths, 5-6 weaknesses.
-Match the evidence. Never add filler points to reach a target count.
+RULE 4 — DISTINGUISH WORK FROM WRITING:
+If the project is weak, say the project is weak.
+If the project is good but the description is poor, say exactly that.
+Never conflate the two. The candidate needs to know which one is the problem.
 
-RULE 5 — FOLLOW-UP QUESTIONS MUST PROVE YOU READ THE RESUME:
-Each question must reference something specific you observed: a project name, a technology,
-a section gap, an unclear claim, or an unexplained achievement.
-BANNED questions: "Which section would you like to improve?" | "What are your career goals?"
-| "How can I help you?" | "Would you like me to rewrite anything?" | any generic question.
+RULE 5 — ONE PRIORITY IN "WHAT I'D FIX FIRST":
+Exactly one. Not a list. Not two with an "and". One.
+
+RULE 6 — FOLLOW-UP QUESTIONS MUST BE SPECIFIC:
+Every question references something you actually observed in this resume.
+BANNED questions: "Which section would you like to improve?" | "How can I help you?" |
+"What would you like to rewrite?" | "What are your career goals?" | anything generic.
+
+RULE 7 — HARD STOP AFTER "WHAT I'D FIX FIRST":
+The review ends at the "What I'd Fix First" section.
+No closing remarks. No encouragement. No summary. Stop there.
+The follow_up_questions field handles the close.
 """.strip()
 
 
@@ -84,10 +89,11 @@ def parse_and_validate_analysis_json(
     fallback_ats: int = 70,
 ) -> dict:
     """
-    Parse raw AI response text into a validated dictionary matching the schema.
+    Parse raw AI response text into a validated dictionary.
     """
     cleaned = raw_text.strip()
 
+    # Strip markdown code fences if present
     if cleaned.startswith("```"):
         cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned)
         cleaned = re.sub(r"\s*```$", "", cleaned)
@@ -95,7 +101,7 @@ def parse_and_validate_analysis_json(
     try:
         data = json.loads(cleaned)
         if isinstance(data, dict):
-            # Filter empty strings from follow_up_questions
+            # Filter empty/placeholder strings from follow_up_questions
             if "follow_up_questions" in data:
                 data["follow_up_questions"] = [
                     q for q in data["follow_up_questions"]
@@ -110,31 +116,31 @@ def parse_and_validate_analysis_json(
         return {
             "opening": "I went through your resume. There are some key details I need before I can give you a proper review.",
             "review_markdown": (
-                "### Before I Can Give You a Real Review\n\n"
+                "## Before I Can Give You a Real Review\n\n"
                 "• Education section is missing — degree, year, and institution.\n"
                 "• No project names or technology stack visible.\n"
-                "• GitHub or LinkedIn link would help significantly."
+                "• No GitHub or LinkedIn link present."
             ),
             "follow_up_questions": [
                 "What degree are you pursuing or have completed, and when do you graduate?",
-                "What's one project you've built — what did it do and what technology stack did you use?",
+                "What is one project you have built — what did it do and what technology did you use?",
             ],
         }
 
     return {
-        "opening": "I've gone through your resume. Here's my honest read.",
+        "opening": "I have gone through your resume. Here is my honest take.",
         "review_markdown": (
-            "### What's Working\n\n"
+            "## Strengths\n\n"
             "• Resume contains a recognizable technical stack.\n\n"
-            "### What's Holding This Resume Back\n\n"
-            "• Bullet points have no measurable outcomes — recruiters cannot verify impact without numbers.\n"
-            "• Project descriptions don't explain the technical decisions made, only the tools used.\n\n"
-            "### 🎯 What I'd Fix First\n\n"
-            "Rewrite your project bullets to include what you built, how it works, and what it achieved. "
-            "A single strong project description with real metrics outweighs a page of vague bullets."
+            "## What's Holding This Resume Back\n\n"
+            "• Project descriptions have no measurable outcomes. Recruiters cannot verify impact without numbers.\n"
+            "• The writing does not explain what you built or why it mattered — only what tools you used.\n\n"
+            "## What I'd Fix First\n\n"
+            "Rewrite your project descriptions to include what the project does, how it works technically, "
+            "and what it achieved. One well-written project description outweighs a page of vague bullets."
         ),
         "follow_up_questions": [
-            "Did any of your projects have real users or measurable outcomes that aren't mentioned in the resume?",
+            "Did any of your projects have real users or measurable outcomes that are not mentioned in the resume?",
             "Is there a GitHub link I can look at for your main projects?",
         ],
     }

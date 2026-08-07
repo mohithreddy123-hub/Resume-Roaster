@@ -1,8 +1,8 @@
 """
 prompts/roast_prompt.py
 -----------------------
-Generates the initial resume analysis prompt for the first recruiter review.
-One responsibility: produce the initial analysis with recruiter personality.
+Generates the initial resume analysis prompt sent to Gemini.
+One responsibility: instruct the AI to produce the first recruiter review.
 """
 
 from config import (
@@ -25,18 +25,18 @@ def get_roast_prompt(
     score_explanation: dict | None = None,
 ) -> str:
     """
-    Build the initial analysis prompt.
+    Build the initial recruiter review prompt for Gemini.
 
     Args:
-        structured_resume:  Dictionary of extracted resume sections.
+        structured_resume:  Extracted resume sections as a dictionary.
         category:           Internal quality category (Excellent/Good/Average/Bad).
-        python_score:       Deterministic Python resume score (0-100).
-        ats_score:          Deterministic Python ATS score (0-100).
-        missing_fields:     List of missing fields detected by Python.
-        job_description:    Optional target Job Description text.
+        python_score:       Deterministic resume score (0-100) from Python engine.
+        ats_score:          Deterministic ATS score (0-100) from Python engine.
+        missing_fields:     List of missing sections detected by the Python parser.
+        job_description:    Optional target job description text.
         score_explanation:  Dict with 'resume_score_reasons' and 'ats_score_reasons'
-                            from get_score_explanation() — ensures AI feedback is
-                            consistent with the numerical scores.
+                            from get_score_explanation(). Ensures the written review
+                            matches the numerical scores.
 
     Returns:
         Complete prompt string for Gemini.
@@ -51,128 +51,129 @@ def get_roast_prompt(
     missing_block = ""
     if missing_fields:
         missing_block = (
-            "\nMISSING CRITICAL FIELDS (detected by Python parser):\n- "
+            "\nMISSING SECTIONS (detected by Python parser — reference these in your review):\n- "
             + "\n- ".join(missing_fields) + "\n"
         )
 
-    # Score explanation reasons ensure written feedback agrees with the numbers
+    # Score explanation reasons ensure the written review matches the numbers
     score_block = ""
     if score_explanation:
         resume_reasons = score_explanation.get("resume_score_reasons", [])
         ats_reasons    = score_explanation.get("ats_score_reasons", [])
         if resume_reasons:
-            score_block += "\nWHY THE RESUME SCORE IS WHAT IT IS (your review must reflect these):\n"
+            score_block += "\nWHY THE RESUME SCORE IS {}/100 (your written review must reflect these reasons):\n".format(python_score)
             for r in resume_reasons:
                 score_block += f"  • {r}\n"
         if ats_reasons:
-            score_block += "\nWHY THE ATS SCORE IS WHAT IT IS (your review must reflect these):\n"
+            score_block += "\nWHY THE ATS SCORE IS {}/100 (reference these where relevant):\n".format(ats_score)
             for r in ats_reasons:
                 score_block += f"  • {r}\n"
 
     return f"""
-You are performing the FIRST RECRUITER REVIEW of a candidate's resume.
-You are a 20-year veteran recruiter and senior engineering director who has personally screened over 10,000 tech resumes.
+You are performing the FIRST RECRUITER REVIEW of this candidate's resume.
+You are a witty, experienced recruiter and senior engineering director.
+You have read this resume from top to bottom and you are now speaking directly to the candidate.
 
-━━━ SCORES (DO NOT CHANGE THESE — THEY ARE COMPUTED BY PYTHON) ━━━
+━━━ SCORES (COMPUTED BY PYTHON — DO NOT CHANGE) ━━━
 Resume Score : {python_score}/100
 ATS Score    : {ats_score}/100
 Category     : {category}
 {missing_block}{jd_block}{score_block}
-━━━ RESUME CONTENT (this is what you have actually read) ━━━
-Header       : {structured_resume.get('header', '[not found]')}
-Summary      : {structured_resume.get('summary', '[not found]')}
-Education    : {structured_resume.get('education', '[not found]')}
-Experience   : {structured_resume.get('experience', '[not found]')}
-Projects     : {structured_resume.get('projects', '[not found]')}
-Skills       : {structured_resume.get('skills', '[not found]')}
+━━━ RESUME CONTENT (what you have actually read) ━━━
+Header        : {structured_resume.get('header', '[not found]')}
+Summary       : {structured_resume.get('summary', '[not found]')}
+Education     : {structured_resume.get('education', '[not found]')}
+Experience    : {structured_resume.get('experience', '[not found]')}
+Projects      : {structured_resume.get('projects', '[not found]')}
+Skills        : {structured_resume.get('skills', '[not found]')}
 Certifications: {structured_resume.get('certifications', '[not found]')}
 
-━━━ YOUR MISSION ━━━
-Write a review that makes the candidate think: "This AI actually read my resume."
-Every sentence must prove you read the specific document above — not a generic resume.
-
-━━━ WHAT IS FORBIDDEN ━━━
-• Generic openers: "Your resume has a solid technical foundation." / "I have reviewed your resume." / "Thank you for sharing."
-• Filler strengths: "Good use of technical skills." / "Shows knowledge of relevant technologies." / "Well-structured resume."
-• Softened criticism: "Consider improving..." / "You might want to..." / "It would be beneficial to..."
-• Fixed templates: Do not write the same number of strengths and weaknesses for every resume.
-• Sections beyond "What I'd Fix First": Stop the review there. No closing remarks in review_markdown.
-• Generic follow-up questions: "Which section would you like to improve?" is banned.
-
-━━━ WHAT IS REQUIRED ━━━
-• Every strength bullet names a specific project, technology, or section from this resume.
-• Every weakness bullet covers: what is wrong + why a recruiter cares + what to change.
-• The opening references something specific from the resume — proof you actually read it.
-• The number of strengths and weaknesses matches the actual quality of the resume.
-• Follow-up questions reference actual project names, technologies, or gaps you observed.
-• Score consistency: if the score is {python_score}/100, the written review must clearly reflect that level.
-
+━━━ YOUR TONE FOR THIS REVIEW ━━━
 {tone_instruction}
 
-━━━ OUTPUT FORMAT ━━━
+━━━ WHAT YOU MUST DO ━━━
+
+1. PROVE YOU READ THIS RESUME:
+   Every sentence in the opening and every strength bullet must reference something
+   specific from the content above — a project name, technology, section, or claim.
+   A sentence that could describe any resume without modification is forbidden.
+
+2. DISTINGUISH WORK FROM WRITING:
+   If a project itself is weak: "This project is weak. It reads more like a tutorial than real engineering work."
+   If the project is good but the description is bad: "The project is actually good. The description is the problem.
+   You are making a genuinely good project look ordinary."
+   Never conflate the two.
+
+3. SCORE CONSISTENCY:
+   Your written review must clearly reflect the score of {python_score}/100.
+   Score 80+ → strong resume, targeted improvements only.
+   Score 60-79 → real weaknesses that are costing callbacks.
+   Score below 60 → significant problems that need to be named directly.
+
+4. STOP AFTER "WHAT I'D FIX FIRST":
+   Do not add closing remarks in review_markdown. The review ends there.
+
+━━━ WHAT IS FORBIDDEN ━━━
+• "Needs improvement." / "Could be better." / "Consider enhancing."
+• "Good technical stack." / "Strong foundation." / "Nice projects."
+• "Well-structured resume." / "Solid profile." / "Great work."
+• Any opener that could apply to a different resume without modification.
+• More than one item in "What I'd Fix First".
+• Generic follow-up questions.
+
 {json_instructions}
 """.strip()
 
 
 def _get_tone_instruction(category: str) -> str:
-    """Return tone calibration instructions based on resume quality category."""
+    """Return tone calibration by category with concrete voice examples."""
 
-    opening_guidance = (
-        "\n\nOPENING FIELD — CALIBRATION:\n"
-        "Write 2-4 natural lines that sound like you just put the resume down and are speaking directly to the candidate.\n"
-        "Vary the opening phrase. Never use the same intro twice. Reference one specific thing from the resume.\n"
-        "Tone examples by quality:\n"
-        "  Excellent — 'I finished reading your resume. Genuinely, [specific project] caught my attention. There is real depth here.'\n"
-        "  Good      — 'I went through this carefully. [Specific section] is solid. But there are things that would make recruiters hesitate.'\n"
-        "  Average   — 'I spent a few minutes with this resume. Here is my honest read. [Specific observation about a gap].'\n"
-        "  Weak      — 'I read through this. I am going to be straight with you — this resume is not ready yet. Here is why.'"
+    voice_examples = (
+        "\n\nVOICE EXAMPLES — use this register, adapt to evidence:\n"
+        "  'What is this project description? You built a solid project and explained it in two sleepy lines.'\n"
+        "  'What is this summary? I finished reading it and still do not know why I should hire you.'\n"
+        "  'Your skills section is talking loudly, but your projects are staying silent.'\n"
+        "  'This bullet is doing absolutely nothing for you.'\n"
+        "  'This section is wasting space.'\n"
+        "  'This project had the potential to impress me, but the description completely killed the impact.'\n"
+        "  'I stopped reading here. That is not a good sign.'\n"
+        "  'You are underselling yourself. This achievement deserves a better sentence.'"
     )
 
     instructions = {
         CATEGORY_EXCELLENT: (
-            "TONE: Genuine appreciation — but do not hold back on what still needs improvement.\n"
-            "This candidate has real strength. Acknowledge it specifically. Then identify the 2-3 things "
-            "preventing this from being a top-1% resume. Focus on: missing metrics, weak bullet phrasing, "
-            "executive-level impact language, and competitive positioning.\n"
-            "Be direct. Strong candidates deserve specific feedback, not vague praise."
-            + opening_guidance
+            "TONE: Genuine appreciation with honest precision.\n"
+            "This is a strong resume. Open with real appreciation — name specifically what impressed you.\n"
+            "Then find the 2-3 things still holding it back from being a top-1% resume.\n"
+            "Even excellent resumes have weak bullet points, missing metrics, or undersold achievements.\n"
+            "Find them. Be specific. Do not hold back to seem polite."
+            + voice_examples
         ),
         CATEGORY_GOOD: (
-            "TONE: Balanced honesty. Acknowledge what genuinely works, then be sharp about what's holding this back.\n"
-            "This candidate has potential but is leaving callbacks on the table. "
-            "Be direct about the specific weaknesses without being cruel. "
-            "Treat them like someone who could get interviews tomorrow with the right 2-3 changes.\n"
-            "Do not soften valid criticism. Recruiters are blunt. Be blunt."
-            + opening_guidance
+            "TONE: Balanced and sharp. Honest about both sides.\n"
+            "This resume has genuine strengths — name them specifically.\n"
+            "It also has weaknesses that are actively costing interview callbacks.\n"
+            "Be direct about what is not working. This candidate could improve significantly with targeted changes.\n"
+            "React naturally. If something is disappointing, say it is disappointing."
+            + voice_examples
         ),
         CATEGORY_AVERAGE: (
-            "TONE: Direct and unflinching. This resume has real problems that need to be named clearly.\n"
-            "Do not be cruel — but do not soften the truth either. "
-            "Name each weakness directly: 'This project description doesn't tell me anything.' "
-            "'This summary is forgettable.' 'This section is wasting space.' "
-            "Every weakness must include what should change. Never just complain — always direct.\n"
-            "The roasting should feel honest, not mean. Roast the resume, never the person."
-            + opening_guidance
+            "TONE: Direct and unflinching. This resume has real problems.\n"
+            "Name each weakness directly and specifically. Do not soften valid criticism.\n"
+            "If a project description is poor, say exactly what is wrong with it.\n"
+            "If the summary is forgettable, say it is forgettable.\n"
+            "If a section is wasting space, say it is wasting space.\n"
+            "Every criticism must explain the fix. Roast the resume, never the candidate."
+            + voice_examples
         ),
         CATEGORY_BAD: (
-            "TONE: Honest and direct. This resume needs serious work and the candidate deserves to know it.\n"
-            "Open with the biggest problem immediately. Do not bury it. "
-            "Focus on structural reconstruction: what sections need to be added, "
-            "what descriptions need to be rewritten, what evidence is completely missing.\n"
-            "Be constructive throughout — every criticism must include a path forward. "
-            "The goal is to give the candidate a clear reconstruction plan, not to discourage them."
-            + opening_guidance
+            "TONE: Honest and direct. This resume is not ready and the candidate deserves to know.\n"
+            "Open with the biggest problem immediately. Do not bury it.\n"
+            "Name the structural problems clearly: what sections are missing, what descriptions are unusable,\n"
+            "what evidence is completely absent.\n"
+            "Be constructive — every criticism must include what to do instead.\n"
+            "The goal is a clear reconstruction plan, not discouragement."
+            + voice_examples
         ),
     }
     return instructions.get(category, instructions[CATEGORY_AVERAGE])
-
-
-def _get_roast_style(category: str) -> str:
-    """Return weakness formatting guidance based on category. Used internally."""
-    styles = {
-        CATEGORY_EXCELLENT: "Focus on executive impact, metric precision, and high-tier competitive positioning.",
-        CATEGORY_GOOD:      "Direct feedback with sharp precision. Name the specific weakness and fix.",
-        CATEGORY_AVERAGE:   "Unflinching directness. Name the problem, explain why it matters, give the fix.",
-        CATEGORY_BAD:       "Structural reconstruction focus. Prioritize the biggest gaps first.",
-    }
-    return styles.get(category, styles[CATEGORY_AVERAGE])

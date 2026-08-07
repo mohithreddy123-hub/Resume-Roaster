@@ -33,7 +33,6 @@ def render_analysis_results() -> None:
     analysis_json  = st.session_state.get("analysis_json", {})
     stage          = st.session_state.get("conversation_stage", "INITIAL_REVIEW")
 
-    render_section_header("🎯 Senior Recruiter Review")
 
 
     # 1. Natural Recruiter Opening — rendered FIRST, before scores
