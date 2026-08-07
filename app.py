@@ -4,13 +4,13 @@
 app.py
 ------
 Resume Roaster — Main Streamlit application entry point.
-Conversation-first layout, custom light premium theme, step-by-step analysis feedback,
+Conversation-first layout, multi-layered light theme, step-by-step analysis feedback,
 multi-resume session history & AI resume comparison.
 
 Flow:
     1. Page config & CSS loading
     2. Session state initialization
-    3. Sidebar conversation history rendering
+    3. Sidebar conversation history & session switcher
     4. Landing view / Upload screen (if no resumes analyzed)
     5. Results view / Conversation view (after analysis)
 """
@@ -73,6 +73,7 @@ def init_session_state() -> None:
         "analysis_done":        False,
         "resume_history":       [],    # list of all uploaded resume dicts
         "active_resume_index":  0,
+        "uploader_key":         0,     # dynamic widget key for file uploader resets
         "comparison_mode":      False,
         "comparison_result":    "",
         "resume_text":          "",
@@ -107,14 +108,24 @@ def load_resume_from_history(index: int) -> None:
         st.session_state.resume_category = item.get("resume_category", "")
         st.session_state.missing_fields = item.get("missing_fields", [])
         st.session_state.analysis_json = item.get("analysis_json", {})
+        st.session_state.conversation_stage = item.get("conversation_stage", "INITIAL_REVIEW")
         st.session_state.conversation_history = item.get("conversation_history", [])
 
 
 def reset_session() -> None:
-    """Reset to clean upload view."""
+    """Reset to clean upload view and increment uploader key."""
     st.session_state.analysis_done = False
     st.session_state.comparison_mode = False
+    st.session_state.uploader_key = st.session_state.get("uploader_key", 0) + 1
     st.rerun()
+
+
+def reset_all_sessions() -> None:
+    """Completely wipe all resume history and session state."""
+    st.session_state.resume_history = []
+    st.session_state.active_resume_index = 0
+    st.session_state.conversation_history = []
+    reset_session()
 
 
 # ── Analysis Pipeline with Step-by-Step Experience ─────────────
@@ -332,7 +343,7 @@ def main() -> None:
     """Main application entry point."""
     init_session_state()
 
-    # 1. Sidebar Conversation History
+    # 1. Sidebar Conversation History & Session Switcher
     sidebar_action = render_sidebar_history()
     if sidebar_action:
         act = sidebar_action.get("action")
@@ -344,6 +355,9 @@ def main() -> None:
             st.rerun()
         elif act == "new_upload":
             reset_session()
+            return
+        elif act == "reset_all":
+            reset_all_sessions()
             return
 
     # Always show hero header

@@ -5,7 +5,7 @@ ui/upload.py
 ------------
 Upload component — handles custom hero file upload box UI, validation display,
 optional job description input, and primary trigger button.
-No parsing logic here — only UI rendering.
+Uses dynamic uploader key from session state for clean resets.
 """
 
 import streamlit as st
@@ -18,7 +18,7 @@ def render_upload_section() -> tuple[bytes | None, str | None, str]:
 
     Displays:
         - Standout hero upload card with icon badge and clear hierarchy
-        - Streamlit drag & drop file uploader
+        - Streamlit drag & drop file uploader (dynamic key reset)
         - Optional Job Description toggle / input
         - Primary "🔥 Analyze Resume" button
 
@@ -26,6 +26,8 @@ def render_upload_section() -> tuple[bytes | None, str | None, str]:
         Tuple of (file_bytes, filename, job_description) if user clicked Analyze,
         else (None, None, "").
     """
+    uploader_key_id = st.session_state.get("uploader_key", 0)
+
     st.markdown("""
     <div class="rr-upload-card rr-animate">
         <div class="rr-upload-header">
@@ -41,6 +43,7 @@ def render_upload_section() -> tuple[bytes | None, str | None, str]:
         accept_multiple_files=False,
         help=f"Supported: PDF, DOCX · Maximum size: {MAX_FILE_SIZE_MB}MB",
         label_visibility="collapsed",
+        key=f"file_uploader_widget_{uploader_key_id}",
     )
 
     st.markdown("</div>", unsafe_allow_html=True)
@@ -70,7 +73,7 @@ def render_upload_section() -> tuple[bytes | None, str | None, str]:
             label="Target Job Description",
             placeholder="Paste job description or target role details here for a tailored roast and ATS match...",
             height=110,
-            key="job_description_input",
+            key=f"job_description_input_{uploader_key_id}",
             label_visibility="collapsed",
         )
 
@@ -79,7 +82,7 @@ def render_upload_section() -> tuple[bytes | None, str | None, str]:
     with col2:
         analyze_clicked = st.button(
             "🔥 Analyze Resume",
-            key="btn_analyze",
+            key=f"btn_analyze_{uploader_key_id}",
             use_container_width=True,
         )
 
@@ -100,6 +103,6 @@ def render_clear_button() -> bool:
     with col2:
         return st.button(
             "➕ Upload Another Resume",
-            key="btn_clear",
+            key="btn_clear_another",
             use_container_width=True,
         )
