@@ -1,472 +1,583 @@
 /* =============================================================
-   Resume Roaster — Main Stylesheet
-   Dark mode, minimal, modern, premium design
-   Font: Inter (Google Fonts)
+   Resume Roaster — Premium Light Theme Stylesheet
+   Design Philosophy: Apple / Notion minimalist elegance
+   Palette:
+     Canvas:               #FAFAF8
+     Cards:                #FFFFFF
+     Secondary Canvas:     #F4F4F2
+     Primary Text:         #1F1F1F
+     Secondary Text:       #666666
+     Muted Text:           #8E8E93
+     Accent / Fire:        #FF6A00
+     Accent Hover:         #E55F00
+     Accent Soft:          rgba(255, 106, 0, 0.08)
+     Border:               #E5E5E0
+     Border Glow:          #D1D1CB
+     Success / Green:      #22C55E
+     Success Soft:         rgba(34, 197, 94, 0.08)
+     Warning / Amber:      #F59E0B
+     Warning Soft:         rgba(245, 158, 11, 0.08)
+     Danger / Roast / Red: #EF4444
+     Danger Soft:          rgba(239, 68, 68, 0.08)
+   Font: Inter / Apple System Font stack
    ============================================================= */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 /* ── Root Variables ─────────────────────────────────────────── */
 :root {
-  --bg-primary:      #0a0a0f;
-  --bg-secondary:    #12121a;
-  --bg-card:         #16161f;
-  --bg-hover:        #1c1c28;
-  --border:          #2a2a3a;
-  --border-glow:     #3d3d5c;
+  --bg-primary:        #FAFAF8;
+  --bg-secondary:      #F4F4F2;
+  --bg-card:           #FFFFFF;
+  --bg-hover:          #F0F0EC;
+  --border:            #E5E5E0;
+  --border-strong:     #D1D1CB;
 
-  --accent-primary:  #7c6af7;
-  --accent-hover:    #9b8cfb;
-  --accent-glow:     rgba(124, 106, 247, 0.15);
+  --accent-primary:    #FF6A00;
+  --accent-hover:      #E55F00;
+  --accent-glow:       rgba(255, 106, 0, 0.12);
 
-  --green:           #22c55e;
-  --green-bg:        rgba(34, 197, 94, 0.08);
-  --green-border:    rgba(34, 197, 94, 0.25);
+  --green:             #22C55E;
+  --green-bg:          rgba(34, 197, 94, 0.07);
+  --green-border:      rgba(34, 197, 94, 0.22);
 
-  --amber:           #f59e0b;
-  --amber-bg:        rgba(245, 158, 11, 0.08);
-  --amber-border:    rgba(245, 158, 11, 0.25);
+  --amber:             #F59E0B;
+  --amber-bg:          rgba(245, 158, 11, 0.07);
+  --amber-border:      rgba(245, 158, 11, 0.22);
 
-  --red:             #ef4444;
-  --red-bg:          rgba(239, 68, 68, 0.08);
+  --red:               #EF4444;
+  --red-bg:            rgba(239, 68, 68, 0.07);
+  --red-border:        rgba(239, 68, 68, 0.22);
 
-  --text-primary:    #f0f0f8;
-  --text-secondary:  #9090b0;
-  --text-muted:      #5a5a7a;
+  --text-primary:      #1F1F1F;
+  --text-secondary:    #666666;
+  --text-muted:        #8E8E93;
 
-  --font:            'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --radius:          12px;
-  --radius-sm:       8px;
-  --radius-lg:       16px;
-  --transition:      all 0.2s ease;
+  --font:              'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --radius-sm:         8px;
+  --radius:            12px;
+  --radius-lg:         18px;
+  --radius-xl:         24px;
+  --shadow-sm:         0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  --shadow:            0 4px 12px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.03);
+  --shadow-lg:         0 10px 25px rgba(0, 0, 0, 0.07), 0 4px 10px rgba(0, 0, 0, 0.04);
+  --transition:        all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* ── Global Reset ───────────────────────────────────────────── */
+/* ── Global Reset & Font ────────────────────────────────────── */
 html, body, [class*="css"] {
   font-family: var(--font) !important;
   background-color: var(--bg-primary) !important;
   color: var(--text-primary) !important;
+  -webkit-font-smoothing: antialiased;
 }
 
 .stApp {
   background-color: var(--bg-primary) !important;
 }
 
-/* ── Hide Streamlit Chrome ─────────────────────────────────── */
-#MainMenu { visibility: hidden; }
-footer    { visibility: hidden; }
-header    { visibility: hidden; }
-.stDeployButton { display: none; }
+/* ── Hide Streamlit Chrome Completely ──────────────────────── */
+#MainMenu,
+footer,
+header,
+.stDeployButton,
+[data-testid="stHeader"],
+[data-testid="stFooter"],
+[data-testid="stDecoration"],
+[data-testid="stStatusWidget"],
+[data-testid="stToolbar"] {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
 
-/* ── Main Container ─────────────────────────────────────────── */
+/* ── Main Layout Container ──────────────────────────────────── */
 .block-container {
-  max-width: 820px !important;
-  padding: 2rem 1.5rem !important;
+  max-width: 860px !important;
+  padding: 2.5rem 1.5rem 4rem 1.5rem !important;
   margin: 0 auto !important;
 }
 
-/* ── Landing Header ─────────────────────────────────────────── */
+/* ── Landing Page Hero Section ──────────────────────────────── */
 .rr-hero {
   text-align: center;
-  padding: 3rem 0 2.5rem;
+  padding: 3.5rem 1rem 2rem 1rem;
 }
 
 .rr-logo {
-  font-size: 3.5rem;
+  font-size: 3.8rem;
   line-height: 1;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.8rem;
+  display: inline-block;
+  filter: drop-shadow(0 4px 12px rgba(255, 106, 0, 0.25));
 }
 
 .rr-title {
-  font-size: 2.8rem;
+  font-size: 3rem;
   font-weight: 800;
-  letter-spacing: -0.03em;
-  background: linear-gradient(135deg, #f0f0f8 0%, #9090b0 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  letter-spacing: -0.04em;
+  color: var(--text-primary);
   margin: 0;
-  line-height: 1.1;
+  line-height: 1.15;
 }
 
 .rr-subtitle {
-  font-size: 1.05rem;
+  font-size: 1.15rem;
   color: var(--text-secondary);
-  margin-top: 0.75rem;
+  margin-top: 0.85rem;
   line-height: 1.6;
   font-weight: 400;
+  max-width: 520px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
-/* ── Upload Card ─────────────────────────────────────────────── */
-.rr-upload-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 2rem;
-  margin-top: 2rem;
-  transition: var(--transition);
-}
-
-.rr-upload-card:hover {
-  border-color: var(--border-glow);
-}
-
-/* ── File Uploader Overrides ─────────────────────────────────── */
+/* ── Custom File Uploader Component ─────────────────────────── */
 [data-testid="stFileUploader"] {
-  background: var(--bg-secondary) !important;
+  background: var(--bg-card) !important;
   border: 2px dashed var(--border) !important;
-  border-radius: var(--radius) !important;
-  padding: 1.5rem !important;
+  border-radius: var(--radius-lg) !important;
+  padding: 2rem 1.5rem !important;
+  text-align: center !important;
   transition: var(--transition) !important;
+  box-shadow: var(--shadow-sm) !important;
 }
 
 [data-testid="stFileUploader"]:hover {
   border-color: var(--accent-primary) !important;
-  background: var(--accent-glow) !important;
+  background: var(--accent-soft) !important;
+  box-shadow: var(--shadow) !important;
+}
+
+[data-testid="stFileUploaderDropzone"] {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
 }
 
 [data-testid="stFileUploaderDropzone"] label {
-  color: var(--text-secondary) !important;
-  font-size: 0.9rem !important;
+  color: var(--text-primary) !important;
+  font-weight: 600 !important;
+  font-size: 1.05rem !important;
 }
 
-/* ── Buttons ─────────────────────────────────────────────────── */
+[data-testid="stFileUploaderDropzone"] small {
+  color: var(--text-muted) !important;
+  font-size: 0.88rem !important;
+}
+
+/* Streamlit Upload Button */
+[data-testid="stFileUploader"] button {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-sm) !important;
+  font-weight: 500 !important;
+  padding: 0.45rem 1rem !important;
+  transition: var(--transition) !important;
+}
+
+[data-testid="stFileUploader"] button:hover {
+  background-color: var(--border) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Custom Upload Card Box */
+.rr-upload-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 2.25rem 2rem;
+  margin-top: 1.5rem;
+  box-shadow: var(--shadow);
+  transition: var(--transition);
+}
+
+.rr-upload-card:hover {
+  box-shadow: var(--shadow-lg);
+  border-color: var(--border-strong);
+}
+
+.rr-upload-header {
+  text-align: center;
+  margin-bottom: 1.25rem;
+}
+
+.rr-upload-icon {
+  font-size: 2.2rem;
+  margin-bottom: 0.4rem;
+  color: var(--accent-primary);
+}
+
+.rr-upload-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.rr-upload-subtitle {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
+}
+
+/* ── Primary Action Buttons ─────────────────────────────────── */
 .stButton > button {
-  background: var(--accent-primary) !important;
-  color: #ffffff !important;
+  background-color: var(--accent-primary) !important;
+  color: #FFFFFF !important;
   border: none !important;
   border-radius: var(--radius-sm) !important;
   font-family: var(--font) !important;
   font-weight: 600 !important;
-  font-size: 0.95rem !important;
-  padding: 0.6rem 1.5rem !important;
+  font-size: 0.98rem !important;
+  padding: 0.7rem 1.6rem !important;
   transition: var(--transition) !important;
   cursor: pointer !important;
   letter-spacing: 0.01em !important;
+  box-shadow: 0 2px 8px rgba(255, 106, 0, 0.25) !important;
 }
 
 .stButton > button:hover {
-  background: var(--accent-hover) !important;
+  background-color: var(--accent-hover) !important;
   transform: translateY(-1px) !important;
-  box-shadow: 0 4px 20px var(--accent-glow) !important;
+  box-shadow: 0 4px 16px rgba(255, 106, 0, 0.35) !important;
 }
 
 .stButton > button:active {
   transform: translateY(0) !important;
+  box-shadow: 0 1px 4px rgba(255, 106, 0, 0.2) !important;
 }
 
 .stButton > button:disabled {
-  background: var(--border) !important;
+  background-color: var(--border) !important;
   color: var(--text-muted) !important;
   cursor: not-allowed !important;
   transform: none !important;
   box-shadow: none !important;
 }
 
-/* ── Score Cards ─────────────────────────────────────────────── */
+/* Secondary Button Style */
+.rr-btn-secondary button {
+  background-color: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.rr-btn-secondary button:hover {
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--border-strong) !important;
+  box-shadow: var(--shadow) !important;
+}
+
+/* ── Apple / Notion Minimal Score Cards ─────────────────────── */
 .rr-scores-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin: 1.5rem 0;
+  gap: 1.25rem;
+  margin: 1.75rem 0;
 }
 
 .rr-score-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 1.5rem;
+  padding: 1.4rem 1.6rem;
   text-align: center;
+  box-shadow: var(--shadow-sm);
   transition: var(--transition);
 }
 
 .rr-score-card:hover {
-  border-color: var(--border-glow);
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow);
   transform: translateY(-2px);
 }
 
 .rr-score-number {
-  font-size: 3rem;
+  font-size: 3.2rem;
   font-weight: 800;
   letter-spacing: -0.04em;
   line-height: 1;
-  background: linear-gradient(135deg, var(--accent-primary), var(--accent-hover));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--text-primary);
 }
 
 .rr-score-label {
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   font-weight: 600;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  margin-top: 0.4rem;
+  margin-top: 0.5rem;
 }
 
 .rr-score-sublabel {
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   color: var(--text-muted);
   margin-top: 0.2rem;
-  font-style: italic;
 }
 
-/* ── Section Headers ─────────────────────────────────────────── */
-.rr-section-header {
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin: 2rem 0 0.75rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--border);
+/* ── Textarea / Form Controls ───────────────────────────────── */
+.stTextArea textarea {
+  background-color: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-sm) !important;
+  font-family: var(--font) !important;
+  font-size: 0.92rem !important;
+  padding: 0.8rem 1rem !important;
+  transition: var(--transition) !important;
 }
 
-/* ── Strength Items ──────────────────────────────────────────── */
-.rr-strength-item {
-  background: var(--green-bg);
-  border: 1px solid var(--green-border);
-  border-radius: var(--radius-sm);
-  padding: 0.75rem 1rem;
-  margin-bottom: 0.5rem;
-  font-size: 0.9rem;
-  color: var(--text-primary);
-  transition: var(--transition);
-  line-height: 1.5;
+.stTextArea textarea:focus {
+  border-color: var(--accent-primary) !important;
+  box-shadow: 0 0 0 3px var(--accent-glow) !important;
 }
 
-.rr-strength-item:hover {
-  border-color: var(--green);
-  transform: translateX(3px);
-}
-
-.rr-strength-dot {
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--green);
-  margin-right: 0.6rem;
-  vertical-align: middle;
-  position: relative;
-  top: -1px;
-}
-
-/* ── Weakness Items ──────────────────────────────────────────── */
-.rr-weakness-item {
-  background: var(--amber-bg);
-  border: 1px solid var(--amber-border);
-  border-radius: var(--radius-sm);
-  padding: 0.75rem 1rem;
-  margin-bottom: 0.5rem;
-  font-size: 0.9rem;
-  color: var(--text-primary);
-  transition: var(--transition);
-  line-height: 1.5;
-}
-
-.rr-weakness-item:hover {
-  border-color: var(--amber);
-  transform: translateX(3px);
-}
-
-.rr-weakness-dot {
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--amber);
-  margin-right: 0.6rem;
-  vertical-align: middle;
-  position: relative;
-  top: -1px;
-}
-
-.rr-weakness-label {
-  font-weight: 600;
-  color: var(--amber);
-  display: block;
-  margin-bottom: 0.2rem;
-  font-size: 0.88rem;
-}
-
-.rr-weakness-reason {
-  color: var(--text-secondary);
-  font-size: 0.85rem;
-  line-height: 1.5;
-}
-
-/* ── Overall Feedback Card ───────────────────────────────────── */
-.rr-feedback-card {
+/* ── Analysis Step Progress Component ──────────────────────── */
+.rr-progress-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-left: 3px solid var(--accent-primary);
   border-radius: var(--radius);
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  box-shadow: var(--shadow-sm);
+}
+
+.rr-progress-step {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+  transition: var(--transition);
+}
+
+.rr-progress-step.active {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.rr-progress-step.done {
+  color: var(--green);
+}
+
+.rr-progress-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--accent-primary);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Recruiter Opening Card ─────────────────────────────────── */
+.rr-opening-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent-primary);
+  border-radius: var(--radius-sm);
   padding: 1.25rem 1.5rem;
-  margin: 1rem 0;
-  font-size: 0.95rem;
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  font-size: 1.02rem;
   line-height: 1.7;
   color: var(--text-primary);
 }
 
-/* ── Divider ─────────────────────────────────────────────────── */
-.rr-divider {
-  border: none;
-  border-top: 1px solid var(--border);
-  margin: 2rem 0;
-}
-
-/* ── Chat Messages ───────────────────────────────────────────── */
-.rr-chat-container {
-  margin-top: 1.5rem;
-}
-
+/* ── Chat Messages (Conversation Stream) ────────────────────── */
 .rr-msg-user {
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
 }
 
 .rr-msg-user-bubble {
-  background: var(--accent-primary);
-  color: #ffffff;
-  border-radius: 16px 16px 4px 16px;
-  padding: 0.75rem 1.1rem;
-  max-width: 75%;
-  font-size: 0.92rem;
-  line-height: 1.5;
+  background-color: var(--accent-primary);
+  color: #FFFFFF;
+  border-radius: 18px 18px 4px 18px;
+  padding: 0.8rem 1.2rem;
+  max-width: 78%;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  box-shadow: 0 2px 8px rgba(255, 106, 0, 0.2);
 }
 
 .rr-msg-ai {
   display: flex;
   justify-content: flex-start;
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
 }
 
 .rr-msg-ai-bubble {
-  background: var(--bg-card);
+  background-color: var(--bg-card);
   border: 1px solid var(--border);
   color: var(--text-primary);
-  border-radius: 16px 16px 16px 4px;
-  padding: 0.9rem 1.2rem;
-  max-width: 85%;
-  font-size: 0.92rem;
-  line-height: 1.65;
+  border-radius: 18px 18px 18px 4px;
+  padding: 1rem 1.3rem;
+  max-width: 88%;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  box-shadow: var(--shadow-sm);
 }
 
-.rr-msg-ai-bubble strong {
-  color: var(--accent-hover);
+/* ── Follow-Up Questions Card ───────────────────────────────── */
+.rr-followup-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 3px solid #6366F1;
+  border-radius: var(--radius-sm);
+  padding: 1.25rem 1.5rem;
+  margin-top: 1.75rem;
+  margin-bottom: 1.25rem;
+  box-shadow: var(--shadow-sm);
 }
 
-/* ── Error Box ───────────────────────────────────────────────── */
+.rr-followup-title {
+  font-weight: 700;
+  color: #4F46E5;
+  margin-bottom: 0.6rem;
+  font-size: 0.95rem;
+}
+
+/* ── Multiple Resume Comparison Banner ───────────────────────── */
+.rr-multi-resume-banner {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent-primary);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.5rem;
+  margin: 1.25rem 0;
+  box-shadow: var(--shadow-sm);
+}
+
+.rr-multi-resume-title {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text-primary);
+  margin-bottom: 0.4rem;
+}
+
+.rr-multi-resume-desc {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+}
+
+/* ── Sidebar Custom Styling (Conversation History) ───────────── */
+[data-testid="stSidebar"] {
+  background-color: var(--bg-card) !important;
+  border-right: 1px solid var(--border) !important;
+}
+
+[data-testid="stSidebar"] .block-container {
+  padding: 1.5rem 1rem !important;
+}
+
+.rr-sidebar-header {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 1.25rem 0 0.6rem 0.5rem;
+}
+
+.rr-sidebar-item {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.8rem;
+  margin-bottom: 0.3rem;
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.rr-sidebar-item:hover,
+.rr-sidebar-item.active {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  border-color: var(--border);
+}
+
+/* ── Chat Input Overrides ───────────────────────────────────── */
+[data-testid="stChatInput"] {
+  background-color: var(--bg-card) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius) !important;
+  box-shadow: var(--shadow) !important;
+  transition: var(--transition) !important;
+}
+
+[data-testid="stChatInput"]:focus-within {
+  border-color: var(--accent-primary) !important;
+  box-shadow: 0 0 0 3px var(--accent-glow) !important;
+}
+
+[data-testid="stChatInput"] textarea {
+  color: var(--text-primary) !important;
+  font-family: var(--font) !important;
+  font-size: 0.95rem !important;
+}
+
+/* ── Info & Error Boxes ─────────────────────────────────────── */
+.rr-info {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.8rem 1.1rem;
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  margin: 0.75rem 0;
+  box-shadow: var(--shadow-sm);
+}
+
 .rr-error {
   background: var(--red-bg);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  border: 1px solid var(--red-border);
   border-radius: var(--radius-sm);
   padding: 0.9rem 1.2rem;
-  color: #fca5a5;
+  color: var(--red);
   font-size: 0.9rem;
+  font-weight: 500;
   margin: 1rem 0;
 }
 
-/* ── Info Box ────────────────────────────────────────────────── */
-.rr-info {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 0.75rem 1rem;
-  color: var(--text-secondary);
-  font-size: 0.85rem;
-  margin: 0.5rem 0;
+/* ── Animations ──────────────────────────────────────────────── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ── Spinner / Loading ───────────────────────────────────────── */
-.stSpinner > div {
-  border-color: var(--accent-primary) transparent transparent transparent !important;
+.rr-animate {
+  animation: fadeInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* ── Chat Input ──────────────────────────────────────────────── */
-.stChatInput {
-  background: var(--bg-secondary) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: var(--radius) !important;
-}
-
-.stChatInput textarea {
-  background: transparent !important;
-  color: var(--text-primary) !important;
-  font-family: var(--font) !important;
-}
-
-/* ── Streamlit Alerts ────────────────────────────────────────── */
-.stAlert {
-  background: var(--bg-card) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: var(--radius-sm) !important;
-  color: var(--text-primary) !important;
-}
-
-/* ── Expander ────────────────────────────────────────────────── */
-.streamlit-expanderHeader {
-  background: var(--bg-card) !important;
-  border: 1px solid var(--border) !important;
-  border-radius: var(--radius-sm) !important;
-  color: var(--text-primary) !important;
-  font-family: var(--font) !important;
-}
-
-/* ── Metric ──────────────────────────────────────────────────── */
-[data-testid="stMetric"] {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1rem 1.25rem;
-}
-
-[data-testid="stMetricValue"] {
-  color: var(--accent-hover) !important;
-  font-family: var(--font) !important;
-  font-weight: 700 !important;
-}
-
-[data-testid="stMetricLabel"] {
-  color: var(--text-muted) !important;
-  font-family: var(--font) !important;
-}
-
-/* ── Scrollbar ───────────────────────────────────────────────── */
+/* ── Scrollbars ──────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg-primary); }
 ::-webkit-scrollbar-thumb {
   background: var(--border);
   border-radius: 3px;
 }
-::-webkit-scrollbar-thumb:hover { background: var(--border-glow); }
+::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
 
-/* ── Animations ──────────────────────────────────────────────── */
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-.rr-animate {
-  animation: fadeInUp 0.35s ease forwards;
-}
-
-@keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 0 0 var(--accent-glow); }
-  50%       { box-shadow: 0 0 16px 4px var(--accent-glow); }
-}
-
-.rr-score-card:first-child {
-  animation: pulse-glow 3s ease-in-out infinite;
-}
-
-/* ── Responsive ──────────────────────────────────────────────── */
-@media (max-width: 600px) {
-  .rr-title { font-size: 2rem; }
+/* ── Responsive adjustments ─────────────────────────────────── */
+@media (max-width: 640px) {
+  .rr-title { font-size: 2.2rem; }
   .rr-scores-row { grid-template-columns: 1fr; }
-  .block-container { padding: 1rem !important; }
+  .block-container { padding: 1.25rem 1rem !important; }
 }

@@ -2,30 +2,31 @@
 app.py
 ------
 Resume Roaster — Main Streamlit application entry point.
-This file only wires all modules together.
-No business logic, no AI logic, no parsing logic lives here.
+Conversation-first layout, custom light premium theme, step-by-step analysis feedback,
+multi-resume session history & AI resume comparison.
 
 Flow:
-    1. Load CSS
-    2. Initialize session state
-    3. Show hero
-    4. If no resume analyzed yet → show upload section
-    5. If resume analyzed → show results + conversation
+    1. Page config & CSS loading
+    2. Session state initialization
+    3. Sidebar conversation history rendering
+    4. Landing view / Upload screen (if no resumes analyzed)
+    5. Results view / Conversation view (after analysis)
 """
 
+import time
 import streamlit as st
 
 from config import APP_ICON, APP_TITLE, CATEGORY_BAD
 
-# ── Page Config (must be first Streamlit call) ────────────────
+# ── Page Config (Must be first Streamlit call) ────────────────
 st.set_page_config(
     page_title="Resume Roaster",
     page_icon=APP_ICON,
     layout="centered",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="expanded",
 )
 
-# ── Load CSS ──────────────────────────────────────────────────
+# ── Load Custom CSS Stylesheet ────────────────────────────────
 from ui.styles import load_css
 load_css()
 
@@ -34,18 +35,25 @@ from parser.parser import parse_resume
 from utils.validator import validate_file, validate_extracted_text
 from utils.cleaner import clean_text
 from utils.helper import find_missing_fields
+from parser.section_detector import extract_structured_resume
 
-from analyzer.score import calculate_resume_score
+from analyzer.score import calculate_complete_metrics, get_score_explanation
 from analyzer.classifier import classify_resume
-from analyzer.ats import calculate_ats_score
-from analyzer.strengths import extract_strengths
-from analyzer.weaknesses import extract_weaknesses
 
-from llm.gemini import send_message, build_resume_context, GeminiError, GeminiAPIKeyMissingError
+from llm.gemini import send_message, GeminiError, GeminiAPIKeyMissingError
 from prompts.system_prompt import get_system_prompt
 from prompts.roast_prompt import get_roast_prompt
+from prompts.json_schema import parse_and_validate_analysis_json
+from prompts.conversation_prompt import build_conversation_user_prompt
+from prompts.comparison_prompt import get_resume_comparison_prompt
 
-from ui.styles import render_hero, render_error, render_divider
+from ui.styles import (
+    render_hero,
+    render_error,
+    render_divider,
+    render_analysis_steps,
+    render_multi_resume_banner,
+)
 from ui.upload import render_upload_section, render_clear_button
 from ui.dashboard import (
     render_analysis_results,
@@ -53,13 +61,18 @@ from ui.dashboard import (
     render_chat_interface,
     render_clear_conversation_button,
 )
+from ui.sidebar import render_sidebar_history
 
 
 # ── Session State Initialization ──────────────────────────────
 def init_session_state() -> None:
-    """Initialize all session state variables on first load."""
+    """Initialize session state defaults."""
     defaults = {
         "analysis_done":        False,
+        "resume_history":       [],    # list of all uploaded resume dicts
+        "active_resume_index":  0,
+        "comparison_mode":      False,
+        "comparison_result":    "",
         "resume_text":          "",
         "resume_score":         0,
         "ats_score":            0,
@@ -76,93 +89,95 @@ def init_session_state() -> None:
             st.session_state[key] = value
 
 
+def load_resume_from_history(index: int) -> None:
+    """Load a specific resume from history into active session state."""
+    history = st.session_state.get("resume_history", [])
+    if 0 <= index < len(history):
+        item = history[index]
+        st.session_state.active_resume_index = index
+        st.session_state.analysis_done = True
+        st.session_state.comparison_mode = False
+        st.session_state.resume_text = item.get("resume_text", "")
+        st.session_state.structured_resume = item.get("structured_resume", {})
+        st.session_state.job_description = item.get("job_description", "")
+        st.session_state.resume_score = item.get("resume_score", 0)
+        st.session_state.ats_score = item.get("ats_score", 0)
+        st.session_state.resume_category = item.get("resume_category", "")
+        st.session_state.missing_fields = item.get("missing_fields", [])
+        st.session_state.analysis_json = item.get("analysis_json", {})
+        st.session_state.conversation_history = item.get("conversation_history", [])
+
+
 def reset_session() -> None:
-    """Clear all session state to reset the app for a new resume."""
-    keys_to_clear = [
-        "analysis_done", "resume_text", "resume_score", "ats_score",
-        "resume_category", "strengths", "weaknesses", "overall_feedback",
-        "conversation_history", "missing_fields", "error_message",
-    ]
-    for key in keys_to_clear:
-        if key in st.session_state:
-            del st.session_state[key]
+    """Reset to clean upload view."""
+    st.session_state.analysis_done = False
+    st.session_state.comparison_mode = False
     st.rerun()
 
 
-# ── Resume Analysis Pipeline ──────────────────────────────────
-from parser.section_detector import extract_structured_resume
-from prompts.json_schema import parse_and_validate_analysis_json
-from prompts.conversation_prompt import build_conversation_user_prompt
-
-
+# ── Analysis Pipeline with Step-by-Step Experience ─────────────
 def run_analysis_pipeline(
     file_bytes: bytes, filename: str, job_description: str = ""
 ) -> bool:
     """
-    Orchestrate the full deterministic analysis pipeline.
-
-    Steps:
-        1. Validate uploaded file.
-        2. Parse raw text from PDF/DOCX.
-        3. Validate extracted text.
-        4. Clean text.
-        5. Detect resume sections (Python).
-        6. Detect missing critical fields (Python).
-        7. Calculate deterministic Resume Score & ATS Score (Python).
-        8. Classify resume into internal category (Python).
-        9. Send structured context to Gemini for JSON analysis.
-        10. Parse and validate JSON analysis response.
-        11. Store structured analysis & state in session.
-
-    Args:
-        file_bytes:      Raw bytes of the uploaded file.
-        filename:        Original filename.
-        job_description: Optional target Job Description text.
-
-    Returns:
-        True if analysis succeeded, False if any step failed.
+    Orchestrate deterministic parsing + Gemini recruiter review
+    with a step-by-step visual feedback experience.
     """
+    progress_placeholder = st.empty()
+
     # Step 1: Validate file
+    with progress_placeholder.container():
+        render_analysis_steps(0)
+    time.sleep(0.3)
+
     file_validation = validate_file(file_bytes, filename)
     if not file_validation.valid:
         st.session_state.error_message = file_validation.error
+        progress_placeholder.empty()
         return False
 
-    # Step 2: Parse resume text
-    with st.spinner("Reading your resume..."):
-        parse_result = parse_resume(file_bytes, filename)
+    # Step 2: Parse text
+    with progress_placeholder.container():
+        render_analysis_steps(1)
+    time.sleep(0.3)
 
+    parse_result = parse_resume(file_bytes, filename)
     if not parse_result.success:
         st.session_state.error_message = parse_result.error
+        progress_placeholder.empty()
         return False
 
-    # Step 3: Validate extracted text
     text_validation = validate_extracted_text(parse_result.text)
     if not text_validation.valid:
         st.session_state.error_message = text_validation.error
+        progress_placeholder.empty()
         return False
 
-    # Step 4: Clean text
+    # Step 3: Clean & detect sections
+    with progress_placeholder.container():
+        render_analysis_steps(2)
+    time.sleep(0.3)
+
     clean_resume_text = clean_text(parse_result.text)
-
-    # Step 5: Detect sections in Python
     structured_resume = extract_structured_resume(clean_resume_text)
-
-    # Step 6: Detect missing fields in Python
     missing_fields = find_missing_fields(clean_resume_text)
 
-    # Step 7: Unified mathematical score calculation in Python
-    from analyzer.score import calculate_complete_metrics
+    # Step 4: Compare skills & score
+    with progress_placeholder.container():
+        render_analysis_steps(3)
+    time.sleep(0.3)
+
     metrics = calculate_complete_metrics(clean_resume_text, structured_resume.to_dict())
     python_score = metrics["resume_score"]
     ats_score    = metrics["ats_score"]
     category_ratings = metrics["category_ratings"]
 
-    # Step 8: Classify resume in Python (considering missing fields)
-    category = classify_resume(python_score, missing_fields)
+    # Step 5: ATS Compatibility
+    with progress_placeholder.container():
+        render_analysis_steps(4)
+    time.sleep(0.3)
 
-    # Step 8b: Compute evidence-based score explanation reasons
-    from analyzer.score import get_score_explanation
+    category = classify_resume(python_score, missing_fields)
     score_explanation = get_score_explanation(
         resume_text=clean_resume_text,
         structured_resume=structured_resume.to_dict(),
@@ -170,165 +185,103 @@ def run_analysis_pipeline(
         ats_score=ats_score,
     )
 
-    # Step 9: Handle Conversational Branching
-    with st.spinner("Analyzing your resume with AI... This may take a moment."):
-        try:
-            system_prompt = get_system_prompt()
+    # Step 6: Prepare feedback with AI
+    with progress_placeholder.container():
+        render_analysis_steps(5)
 
-            if category == CATEGORY_BAD or len(missing_fields) >= 3:
-                from prompts.missing_prompt import get_missing_info_prompt
-                analysis_query = get_missing_info_prompt(missing_fields, structured_resume.to_dict())
-                conversation_stage = "AWAITING_MISSING_INFO"
-            else:
-                analysis_query = get_roast_prompt(
-                    structured_resume=structured_resume.to_dict(),
-                    category=category,
-                    python_score=python_score,
-                    ats_score=ats_score,
-                    missing_fields=missing_fields,
-                    job_description=job_description,
-                    score_explanation=score_explanation,
-                )
-                conversation_stage = "INITIAL_REVIEW"
-
-            ai_raw_response = send_message(
-                system_prompt=system_prompt,
-                user_message=analysis_query,
-                conversation_history=[],
-                json_mode=True,
+    try:
+        system_prompt = get_system_prompt()
+        if category == CATEGORY_BAD or len(missing_fields) >= 3:
+            from prompts.missing_prompt import get_missing_info_prompt
+            analysis_query = get_missing_info_prompt(missing_fields, structured_resume.to_dict())
+            conversation_stage = "AWAITING_MISSING_INFO"
+        else:
+            analysis_query = get_roast_prompt(
+                structured_resume=structured_resume.to_dict(),
+                category=category,
+                python_score=python_score,
+                ats_score=ats_score,
+                missing_fields=missing_fields,
+                job_description=job_description,
+                score_explanation=score_explanation,
             )
-        except GeminiAPIKeyMissingError:
-            st.session_state.error_message = (
-                "Gemini API key is missing. "
-                "Please add GEMINI_API_KEY to your .env file and restart the app."
-            )
-            return False
-        except GeminiError as e:
-            st.session_state.error_message = str(e)
-            return False
+            conversation_stage = "INITIAL_REVIEW"
 
-    # Step 10: Parse and validate JSON response
+        ai_raw_response = send_message(
+            system_prompt=system_prompt,
+            user_message=analysis_query,
+            conversation_history=[],
+            json_mode=True,
+        )
+    except GeminiAPIKeyMissingError:
+        st.session_state.error_message = (
+            "Gemini API key is missing. "
+            "Please add GEMINI_API_KEY to your .env file and restart the app."
+        )
+        progress_placeholder.empty()
+        return False
+    except GeminiError as e:
+        st.session_state.error_message = str(e)
+        progress_placeholder.empty()
+        return False
+
     analysis_json = parse_and_validate_analysis_json(
         ai_raw_response, category=category, fallback_score=python_score, fallback_ats=ats_score
     )
-    # Ensure category ratings come 100% from Python calculation
     analysis_json["category_ratings"] = category_ratings
+    progress_placeholder.empty()
 
-    # Step 11: Store everything in session state
-    st.session_state.analysis_done       = True
-    st.session_state.conversation_stage  = conversation_stage
-    st.session_state.resume_text         = clean_resume_text
-    st.session_state.structured_resume   = structured_resume.to_dict()
-    st.session_state.job_description     = job_description
-    st.session_state.resume_score        = python_score
-    st.session_state.ats_score           = ats_score
-    st.session_state.resume_category     = category
-    st.session_state.missing_fields      = missing_fields
-    st.session_state.analysis_json       = analysis_json
-    st.session_state.error_message       = None
+    initial_summary = analysis_json.get("opening", "Resume review completed.")
+    conv_history = [{"role": "model", "content": initial_summary}]
 
-    initial_summary = analysis_json.get("first_impression", "Resume review started.")
-    st.session_state.conversation_history = [
-        {"role": "model", "content": initial_summary}
-    ]
+    resume_entry = {
+        "filename": filename,
+        "resume_text": clean_resume_text,
+        "structured_resume": structured_resume.to_dict(),
+        "job_description": job_description,
+        "resume_score": python_score,
+        "ats_score": ats_score,
+        "resume_category": category,
+        "missing_fields": missing_fields,
+        "analysis_json": analysis_json,
+        "conversation_stage": conversation_stage,
+        "conversation_history": conv_history,
+    }
 
+    # Store in history
+    history_list = st.session_state.get("resume_history", [])
+    history_list.append(resume_entry)
+    st.session_state.resume_history = history_list
+
+    # Load as active resume
+    load_resume_from_history(len(history_list) - 1)
     return True
 
 
-import re
+# ── AI Resume Comparison Pipeline ──────────────────────────────
+def run_resume_comparison() -> None:
+    """Run AI comparison between all uploaded resumes in the session."""
+    resumes = st.session_state.get("resume_history", [])
+    if len(resumes) < 2:
+        return
 
-
-def _extract_ai_scores(
-    ai_response: str, fallback_resume: int = 70, fallback_ats: int = 70
-) -> tuple[int, int]:
-    """
-    Extract Resume Score and ATS Score from AI markdown response.
-
-    Looks for patterns like:
-        **Resume Score: 68/100**
-        **ATS Score: 72/100**
-
-    Returns:
-        Tuple of (resume_score, ats_score) as integers.
-    """
-    resume_score = fallback_resume
-    ats_score = fallback_ats
-
-    # Pattern for Resume Score: 65/100 or Score: 65
-    resume_match = re.search(r"Resume\s+Score:\s*(\d{1,3})\s*/\s*100", ai_response, re.IGNORECASE)
-    if resume_match:
+    with st.spinner("Analyzing and comparing your uploaded resumes..."):
         try:
-            resume_score = int(resume_match.group(1))
-        except ValueError:
-            pass
-
-    # Pattern for ATS Score: 70/100
-    ats_match = re.search(r"ATS\s+Score:\s*(\d{1,3})\s*/\s*100", ai_response, re.IGNORECASE)
-    if ats_match:
-        try:
-            ats_score = int(ats_match.group(1))
-        except ValueError:
-            pass
-
-    # Ensure bounds between 0 and 100
-    resume_score = max(0, min(100, resume_score))
-    ats_score = max(0, min(100, ats_score))
-
-    return resume_score, ats_score
-
-
-def _extract_overall_feedback(ai_response: str) -> str:
-    """
-    Extract the Overall Feedback section from the AI response.
-    Falls back to the last paragraph if no clear section header found.
-
-    Args:
-        ai_response: Full AI response text.
-
-    Returns:
-        The overall feedback portion as a string.
-    """
-    lines = ai_response.split("\n")
-    in_feedback = False
-    feedback_lines: list[str] = []
-
-    for line in lines:
-        lower = line.lower().strip()
-        if "overall feedback" in lower or "overall:" in lower:
-            in_feedback = True
-            continue
-        if in_feedback:
-            # Stop at next major section header
-            if line.startswith("**") and line.endswith("**") and len(line) > 6:
-                if "score" in lower or "strength" in lower or "weakness" in lower:
-                    break
-            if line.strip():
-                feedback_lines.append(line.strip())
-
-    if feedback_lines:
-        return " ".join(feedback_lines)
-
-    # Fallback: use the last non-empty paragraph
-    paragraphs = [p.strip() for p in ai_response.split("\n\n") if p.strip()]
-    return paragraphs[-1] if paragraphs else ai_response[:300]
+            prompt = get_resume_comparison_prompt(resumes)
+            comparison_text = send_message(
+                system_prompt=get_system_prompt(),
+                user_message=prompt,
+                conversation_history=[],
+            )
+            st.session_state.comparison_mode = True
+            st.session_state.comparison_result = comparison_text
+        except GeminiError as e:
+            st.session_state.error_message = str(e)
 
 
 # ── Conversation Handler ──────────────────────────────────────
 def handle_user_message(user_message: str) -> None:
-    """
-    Process a follow-up user message and get AI response.
-
-    Sends:
-        - System prompt
-        - Resume context
-        - Full conversation history
-        - User's new message
-
-    Appends both user message and AI response to conversation history.
-
-    Args:
-        user_message: The user's input from the chat box.
-    """
+    """Process a follow-up user chat message."""
     structured_resume = st.session_state.get("structured_resume", {})
     python_score      = st.session_state.get("resume_score", 70)
     ats_score         = st.session_state.get("ats_score", 70)
@@ -336,7 +289,6 @@ def handle_user_message(user_message: str) -> None:
     job_description   = st.session_state.get("job_description", "")
     history           = st.session_state.get("conversation_history", [])
 
-    # Build context-aware single-responsibility user message
     full_user_message = build_conversation_user_prompt(
         user_message=user_message,
         structured_resume=structured_resume,
@@ -346,7 +298,6 @@ def handle_user_message(user_message: str) -> None:
         job_description=job_description,
     )
 
-    # Append user message to history
     history.append({"role": "user", "content": user_message})
 
     try:
@@ -354,7 +305,7 @@ def handle_user_message(user_message: str) -> None:
             ai_response = send_message(
                 system_prompt=get_system_prompt(),
                 user_message=full_user_message,
-                conversation_history=history[:-1],  # exclude the just-added user msg
+                conversation_history=history[:-1],
             )
     except GeminiAPIKeyMissingError:
         render_error("Gemini API key is missing. Please check your .env file.")
@@ -363,68 +314,89 @@ def handle_user_message(user_message: str) -> None:
         render_error(str(e))
         return
 
-    # Append AI response to history
     history.append({"role": "model", "content": ai_response})
     st.session_state.conversation_history = history
 
+    # Sync history back to active resume_entry in resume_history
+    active_idx = st.session_state.get("active_resume_index", 0)
+    resumes = st.session_state.get("resume_history", [])
+    if 0 <= active_idx < len(resumes):
+        resumes[active_idx]["conversation_history"] = history
+        st.session_state.resume_history = resumes
 
-# ── Main App ──────────────────────────────────────────────────
+
+# ── Main Application ──────────────────────────────────────────
 def main() -> None:
     """Main application entry point."""
     init_session_state()
 
-    # Always show the hero header
+    # 1. Sidebar Conversation History
+    sidebar_action = render_sidebar_history()
+    if sidebar_action:
+        act = sidebar_action.get("action")
+        if act == "select_resume":
+            load_resume_from_history(sidebar_action.get("index", 0))
+            st.rerun()
+        elif act == "compare_resumes":
+            run_resume_comparison()
+            st.rerun()
+        elif act == "new_upload":
+            reset_session()
+            return
+
+    # Always show hero header
     render_hero()
 
-    # ── State: No analysis done yet ──────────────────────────
+    # ── State 1: Landing / Upload Screen (No active analysis) ──
     if not st.session_state.analysis_done:
 
-        # Show any previous error
         if st.session_state.error_message:
             render_error(st.session_state.error_message)
             st.session_state.error_message = None
 
-        # Show upload section
         file_bytes, filename, job_description = render_upload_section()
 
-        # If user clicked Analyze
         if file_bytes is not None and filename is not None:
             success = run_analysis_pipeline(file_bytes, filename, job_description)
             if success:
-                st.rerun()  # Rerun to show results in clean state
+                st.rerun()
             else:
-                # Error already stored in session — rerun to display it
                 st.rerun()
 
         return
 
-    # ── State: Analysis complete ──────────────────────────────
+    # ── State 2: Active Analysis View ─────────────────────────
 
-    # Option to upload a new resume
+    # Button to upload another resume
     if render_clear_button():
         reset_session()
         return
 
-    render_divider()
+    # Multi-Resume Banner (if 2+ resumes exist)
+    resumes = st.session_state.get("resume_history", [])
+    if len(resumes) >= 2:
+        compare_clicked, review_new_clicked, new_idx = render_multi_resume_banner(resumes)
+        if compare_clicked:
+            run_resume_comparison()
+            st.rerun()
+        elif review_new_clicked:
+            load_resume_from_history(new_idx)
+            st.rerun()
 
-    # Show analysis results (scores, strengths, weaknesses, feedback)
-    render_analysis_results()
+    # ── Comparison View (If user clicked compare) ─────────────
+    if st.session_state.comparison_mode:
+        st.markdown("### ⚡ AI Resume Comparison")
+        st.markdown(st.session_state.comparison_result)
+        render_divider()
+    else:
+        # Standard Conversational Review
+        render_analysis_results()
 
-    # Show conversation history (follow-up messages)
+    # Follow-up Chat History
     render_conversation()
 
-    # Handle clearing conversation
-    if render_clear_conversation_button():
-        # Keep only the first message (initial analysis)
-        if st.session_state.conversation_history:
-            st.session_state.conversation_history = [
-                st.session_state.conversation_history[0]
-            ]
-        st.rerun()
-
-    # Chat input for follow-up questions
+    # Chat Input for questions
     user_input = render_chat_interface()
-
     if user_input and user_input.strip():
         handle_user_message(user_input.strip())
         st.rerun()

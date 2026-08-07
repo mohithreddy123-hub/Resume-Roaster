@@ -2,10 +2,10 @@
 ui/styles.py
 ------------
 Injects the custom CSS stylesheet into Streamlit.
-Also provides helper functions for rendering styled HTML components.
-All design is centralized here — no inline styles scattered across files.
+Provides helper functions for rendering styled components matching the light premium design.
 """
 
+import time
 import streamlit as st
 from pathlib import Path
 
@@ -25,24 +25,24 @@ def load_css() -> None:
 # ── Hero Section ──────────────────────────────────────────────
 
 def render_hero() -> None:
-    """Render the landing page hero — logo, title, subtitle."""
+    """Render the minimal landing page hero — logo, title, subtitle."""
     st.markdown("""
     <div class="rr-hero rr-animate">
         <div class="rr-logo">🔥</div>
         <h1 class="rr-title">Resume Roaster</h1>
         <p class="rr-subtitle">
-            Upload your resume.<br>
-            If it's good, I'll respect it.&nbsp;&nbsp;If it's bad, I'll roast it.
+            If it's good, I'll respect it.<br>
+            If it's bad, I'll roast it.
         </p>
     </div>
     """, unsafe_allow_html=True)
 
 
-# ── Score Cards ───────────────────────────────────────────────
+# ── Score Cards (Apple / Notion Minimal Style) ───────────────
 
 def render_score_cards(resume_score: int, ats_score: int) -> None:
     """
-    Render the dual score cards (Resume Score + ATS Score).
+    Render Apple/Notion-style minimal dual score cards.
 
     Args:
         resume_score: Overall resume score (0–100).
@@ -64,10 +64,56 @@ def render_score_cards(resume_score: int, ats_score: int) -> None:
     """, unsafe_allow_html=True)
 
 
+# ── Step-by-Step Analysis Progress Experience ─────────────────
+
+def render_analysis_steps(current_step_index: int = 0) -> None:
+    """
+    Display a dynamic step-by-step progress indicator to show the AI is genuinely reading the resume.
+
+    Steps:
+        1. Reading your resume...
+        2. Checking projects...
+        3. Looking for missing sections...
+        4. Comparing skills with projects...
+        5. Evaluating ATS compatibility...
+        6. Preparing feedback...
+        7. Done.
+    """
+    steps = [
+        "Reading your resume...",
+        "Checking projects...",
+        "Looking for missing sections...",
+        "Comparing skills with projects...",
+        "Evaluating ATS compatibility...",
+        "Preparing feedback...",
+    ]
+
+    steps_html = '<div class="rr-progress-card rr-animate">'
+    for idx, step in enumerate(steps):
+        if idx < current_step_index:
+            steps_html += f'''
+            <div class="rr-progress-step done">
+                <span>✓</span> <span>{step}</span>
+            </div>'''
+        elif idx == current_step_index:
+            steps_html += f'''
+            <div class="rr-progress-step active">
+                <div class="rr-progress-spinner"></div> <span>{step}</span>
+            </div>'''
+        else:
+            steps_html += f'''
+            <div class="rr-progress-step">
+                <span style="opacity: 0.3;">○</span> <span style="opacity: 0.5;">{step}</span>
+            </div>'''
+    steps_html += '</div>'
+
+    st.markdown(steps_html, unsafe_allow_html=True)
+
+
 # ── Section Header ────────────────────────────────────────────
 
 def render_section_header(title: str) -> None:
-    """Render a styled section header."""
+    """Render a clean, minimal section header."""
     st.markdown(
         f'<div class="rr-section-header">{title}</div>',
         unsafe_allow_html=True
@@ -77,12 +123,7 @@ def render_section_header(title: str) -> None:
 # ── Strengths ─────────────────────────────────────────────────
 
 def render_strengths(strengths: list[str]) -> None:
-    """
-    Render the strengths list with green styled items.
-
-    Args:
-        strengths: List of strength strings.
-    """
+    """Render the strengths list."""
     render_section_header(f"Strengths &nbsp;·&nbsp; {len(strengths)} found")
 
     if not strengths:
@@ -105,12 +146,7 @@ def render_strengths(strengths: list[str]) -> None:
 # ── Weaknesses ────────────────────────────────────────────────
 
 def render_weaknesses(weaknesses: list) -> None:
-    """
-    Render the weaknesses list with amber styled items.
-
-    Args:
-        weaknesses: List of Weakness objects (with .label and .reason).
-    """
+    """Render the weaknesses list."""
     render_section_header(f"Weaknesses &nbsp;·&nbsp; {len(weaknesses)} found")
 
     if not weaknesses:
@@ -135,12 +171,7 @@ def render_weaknesses(weaknesses: list) -> None:
 # ── Overall Feedback ──────────────────────────────────────────
 
 def render_overall_feedback(feedback_text: str) -> None:
-    """
-    Render the overall feedback card.
-
-    Args:
-        feedback_text: The AI-generated overall feedback paragraph.
-    """
+    """Render overall feedback card."""
     render_section_header("Overall Feedback")
     st.markdown(
         f'<div class="rr-feedback-card rr-animate">{feedback_text}</div>',
@@ -148,38 +179,65 @@ def render_overall_feedback(feedback_text: str) -> None:
     )
 
 
-# ── Divider ───────────────────────────────────────────────────
+# ── Multi-Resume Prompt Banner ────────────────────────────────
+
+def render_multi_resume_banner(resumes: list[dict]) -> tuple[bool, bool, int]:
+    """
+    Render a prompt when multiple resumes exist in the current session.
+
+    Returns:
+        Tuple of (compare_clicked, review_new_independently_clicked, selected_resume_index).
+    """
+    if len(resumes) < 2:
+        return False, False, 0
+
+    latest = resumes[-1]["filename"]
+    previous = resumes[-2]["filename"]
+
+    st.markdown(f"""
+    <div class="rr-multi-resume-banner rr-animate">
+        <div class="rr-multi-resume-title">💡 Multiple Resumes Detected</div>
+        <div class="rr-multi-resume-desc">
+            You currently have <strong>{len(resumes)} resumes</strong> in this session (e.g. <em>{previous}</em> and <em>{latest}</em>).
+            Would you like me to compare them or review <em>{latest}</em> independently?
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    col1, col2 = st.columns(2)
+    with col1:
+        compare_clicked = st.button(
+            f"⚡ Compare {previous} vs {latest}",
+            key="btn_compare_resumes",
+            use_container_width=True,
+        )
+    with col2:
+        review_new_clicked = st.button(
+            f"📄 Review {latest} Independently",
+            key="btn_review_independently",
+            use_container_width=True,
+        )
+
+    return compare_clicked, review_new_clicked, len(resumes) - 1
+
+
+# ── Divider & Utilities ───────────────────────────────────────
 
 def render_divider() -> None:
-    """Render a styled horizontal divider."""
-    st.markdown('<hr class="rr-divider">', unsafe_allow_html=True)
+    """Render a subtle divider line."""
+    st.markdown('<hr style="border:none; border-top:1px solid #E5E5E0; margin:2rem 0;">', unsafe_allow_html=True)
 
-
-# ── Error Box ─────────────────────────────────────────────────
 
 def render_error(message: str) -> None:
-    """
-    Render a styled error message.
-
-    Args:
-        message: The user-friendly error string.
-    """
+    """Render a styled error message."""
     st.markdown(
         f'<div class="rr-error">⚠️ &nbsp;{message}</div>',
         unsafe_allow_html=True
     )
 
 
-# ── Chat Message ──────────────────────────────────────────────
-
 def render_chat_message(role: str, content: str) -> None:
-    """
-    Render a chat message bubble.
-
-    Args:
-        role:    "user" or "model"
-        content: The message text (markdown supported for AI messages).
-    """
+    """Render a chat message bubble."""
     if role == "user":
         st.markdown(f"""
         <div class="rr-msg-user">
@@ -187,21 +245,8 @@ def render_chat_message(role: str, content: str) -> None:
         </div>
         """, unsafe_allow_html=True)
     else:
-        # For AI messages, use st.markdown directly to render markdown properly
-        with st.container():
-            st.markdown(f"""
-            <div class="rr-msg-ai">
-                <div class="rr-msg-ai-bubble">{content}</div>
-            </div>
-            """, unsafe_allow_html=True)
-
-
-# ── Wait Prompt ───────────────────────────────────────────────
-
-def render_chat_prompt_hint() -> None:
-    """Render a subtle hint to guide user conversation."""
-    st.markdown("""
-    <div class="rr-info" style="text-align:center; margin-top: 1.5rem;">
-        Ask me anything about your resume — improve a project, suggest skills, rewrite your summary...
-    </div>
-    """, unsafe_allow_html=True)
+        st.markdown(f"""
+        <div class="rr-msg-ai">
+            <div class="rr-msg-ai-bubble">{content}</div>
+        </div>
+        """, unsafe_allow_html=True)
