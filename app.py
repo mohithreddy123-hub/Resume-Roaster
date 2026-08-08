@@ -4,15 +4,14 @@
 app.py
 ------
 Resume Roaster — Main Streamlit application entry point.
-Conversation-first layout, multi-layered light theme, step-by-step analysis feedback,
-multi-resume session history & AI resume comparison.
+Conversation-first layout, premium dark theme, step-by-step analysis feedback,
+persistent multi-resume session history & AI resume comparison.
 
-Flow:
-    1. Page config & CSS loading
-    2. Session state initialization
-    3. Sidebar conversation history & session switcher
-    4. Landing view / Upload screen (if no resumes analyzed)
-    5. Results view / Conversation view (after analysis)
+Session State Flow:
+    1. Each uploaded resume creates an isolated persistent entry in st.session_state.resume_history.
+    2. Active resume index (st.session_state.active_resume_index) tracks which resume is loaded.
+    3. Clicking "Upload New Resume" resets view state (analysis_done = False) without deleting history.
+    4. Switching between resumes in the sidebar preserves full analysis & chat history for each resume.
 """
 
 import time
@@ -68,15 +67,17 @@ from ui.sidebar import render_sidebar_history
 
 # ── Session State Initialization ──────────────────────────────
 def init_session_state() -> None:
-    """Initialize session state defaults."""
+    """Initialize session state defaults with persistent resume_history array."""
     defaults = {
         "analysis_done":        False,
-        "resume_history":       [],    # list of all uploaded resume dicts
+        "resume_history":       [],    # list of all uploaded resume session dicts
         "active_resume_index":  0,
         "uploader_key":         0,     # dynamic widget key for file uploader resets
         "comparison_mode":      False,
         "comparison_result":    "",
         "resume_text":          "",
+        "structured_resume":    {},
+        "job_description":      "",
         "resume_score":         0,
         "ats_score":            0,
         "resume_category":      "",
@@ -109,11 +110,11 @@ def load_resume_from_history(index: int) -> None:
         st.session_state.missing_fields = item.get("missing_fields", [])
         st.session_state.analysis_json = item.get("analysis_json", {})
         st.session_state.conversation_stage = item.get("conversation_stage", "INITIAL_REVIEW")
-        st.session_state.conversation_history = item.get("conversation_history", [])
+        st.session_state.conversation_history = list(item.get("conversation_history", []))
 
 
 def reset_session() -> None:
-    """Reset to clean upload view and increment uploader key."""
+    """Reset to clean upload view and increment uploader key without wiping history."""
     st.session_state.analysis_done = False
     st.session_state.comparison_mode = False
     st.session_state.uploader_key = st.session_state.get("uploader_key", 0) + 1
@@ -135,6 +136,7 @@ def run_analysis_pipeline(
     """
     Orchestrate deterministic parsing + Gemini recruiter review
     with a step-by-step visual feedback experience.
+    Creates a new persistent resume session entry.
     """
     progress_placeholder = st.empty()
 
@@ -261,12 +263,12 @@ def run_analysis_pipeline(
         "conversation_history": conv_history,
     }
 
-    # Store in history
+    # Append to persistent resume history
     history_list = st.session_state.get("resume_history", [])
     history_list.append(resume_entry)
     st.session_state.resume_history = history_list
 
-    # Load as active resume
+    # Automatically load the newly uploaded resume as active session
     load_resume_from_history(len(history_list) - 1)
     return True
 
@@ -294,13 +296,25 @@ def run_resume_comparison() -> None:
 
 # ── Conversation Handler ──────────────────────────────────────
 def handle_user_message(user_message: str) -> None:
-    """Process a follow-up user chat message."""
-    structured_resume = st.session_state.get("structured_resume", {})
-    python_score      = st.session_state.get("resume_score", 70)
-    ats_score         = st.session_state.get("ats_score", 70)
-    missing_fields    = st.session_state.get("missing_fields", [])
-    job_description   = st.session_state.get("job_description", "")
-    history           = st.session_state.get("conversation_history", [])
+    """Process a follow-up user chat message for the active resume session."""
+    active_idx = st.session_state.get("active_resume_index", 0)
+    resumes = st.session_state.get("resume_history", [])
+
+    if 0 <= active_idx < len(resumes):
+        active_resume = resumes[active_idx]
+        structured_resume = active_resume.get("structured_resume", {})
+        python_score      = active_resume.get("resume_score", 70)
+        ats_score         = active_resume.get("ats_score", 70)
+        missing_fields    = active_resume.get("missing_fields", [])
+        job_description   = active_resume.get("job_description", "")
+        history           = list(active_resume.get("conversation_history", []))
+    else:
+        structured_resume = st.session_state.get("structured_resume", {})
+        python_score      = st.session_state.get("resume_score", 70)
+        ats_score         = st.session_state.get("ats_score", 70)
+        missing_fields    = st.session_state.get("missing_fields", [])
+        job_description   = st.session_state.get("job_description", "")
+        history           = list(st.session_state.get("conversation_history", []))
 
     full_user_message = build_conversation_user_prompt(
         user_message=user_message,
@@ -330,11 +344,9 @@ def handle_user_message(user_message: str) -> None:
     history.append({"role": "model", "content": ai_response})
     st.session_state.conversation_history = history
 
-    # Sync history back to active resume_entry in resume_history
-    active_idx = st.session_state.get("active_resume_index", 0)
-    resumes = st.session_state.get("resume_history", [])
+    # Sync back to persistent resume_history array
     if 0 <= active_idx < len(resumes):
-        resumes[active_idx]["conversation_history"] = history
+        resumes[active_idx]["conversation_history"] = list(history)
         st.session_state.resume_history = resumes
 
 
@@ -350,15 +362,6 @@ def main() -> None:
         if act == "select_resume":
             load_resume_from_history(sidebar_action.get("index", 0))
             st.rerun()
-        elif act == "sidebar_file_uploaded":
-            file_bytes = sidebar_action.get("file_bytes")
-            filename = sidebar_action.get("filename")
-            if file_bytes and filename:
-                success = run_analysis_pipeline(file_bytes, filename)
-                if success:
-                    st.rerun()
-                else:
-                    st.rerun()
         elif act == "compare_resumes":
             run_resume_comparison()
             st.rerun()
@@ -428,7 +431,7 @@ def main() -> None:
             ]
             active_idx = st.session_state.get("active_resume_index", 0)
             if 0 <= active_idx < len(resumes):
-                resumes[active_idx]["conversation_history"] = st.session_state.conversation_history
+                resumes[active_idx]["conversation_history"] = list(st.session_state.conversation_history)
                 st.session_state.resume_history = resumes
         st.rerun()
 
