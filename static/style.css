@@ -1,70 +1,68 @@
 /* =============================================================
-   Resume Roaster — Multi-Layered Premium Theme
-   Canvas: Warm off-white (#F8F7F4)
-   Cards: Distinct neutral layering (#FFFFFF / #F1F3F5)
-   Headings: Deep Charcoal/Navy (#1E293B)
+   Resume Roaster — Premium Dark Theme
+   Canvas: Charcoal / Graphite (#111315)
+   Cards: Layered Graphite (#1B1F27)
+   Borders: Subtle Slate Graphite (#2A2E39)
+   Headings: Bright Off-White (#F3F4F6)
+   Body: Soft Muted Gray (#9CA3AF)
    Accent: Signature Fire Orange (#FF6A00)
-   Font: Inter / Apple System stack
    ============================================================= */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-/* ── Root Color System & Tokens ─────────────────────────────── */
+/* ── Root Design System Tokens ──────────────────────────────── */
 :root {
-  --bg-primary:        #F8F7F4;       /* Warm off-white canvas */
-  --bg-secondary:      #F1F3F5;       /* Neutral gray for secondary sections */
-  --bg-card:           #FFFFFF;       /* Crisp white for layered cards */
-  --bg-hover:          #EAECEE;
+  --bg-canvas:         #111315;       /* Charcoal / Graphite canvas */
+  --bg-card:           #1B1F27;       /* Layered dark graphite card */
+  --bg-card-hover:     #222732;       /* Slightly lighter hover */
+  --bg-secondary:      #161920;       /* Secondary section background */
+  --bg-input:          #15181E;       /* Input background */
 
-  --text-heading:      #1E293B;       /* Dark charcoal/navy for headings */
-  --text-body:         #334155;       /* Slate body text */
-  --text-muted:        #64748B;       /* Muted secondary text */
+  --text-heading:      #F3F4F6;       /* Bright off-white for headings */
+  --text-body:         #D1D5DB;       /* Readable light gray body */
+  --text-muted:        #9CA3AF;       /* Muted gray text */
 
-  --accent-primary:    #FF6A00;       /* Signature Orange */
-  --accent-hover:      #E55F00;
+  --accent-orange:     #FF6A00;       /* Signature Fire Orange */
+  --accent-orange-hover:#E55F00;
   --accent-gradient:   linear-gradient(135deg, #FF6A00 0%, #FF8533 100%);
-  --accent-soft:       rgba(255, 106, 0, 0.08);
-  --accent-glow:       rgba(255, 106, 0, 0.16);
+  --accent-soft:       rgba(255, 106, 0, 0.10);
+  --accent-glow:       rgba(255, 106, 0, 0.22);
 
-  --border-light:      #E2E8F0;       /* Subtle slate border */
-  --border-medium:     #CBD5E1;       /* Medium border */
-  --border-accent:     rgba(255, 106, 0, 0.35);
+  --border-light:      #2A2E39;       /* Subtle dark border */
+  --border-medium:     #373D4B;       /* Medium border */
+  --border-accent:     rgba(255, 106, 0, 0.40);
 
-  --green:             #10B981;
-  --green-bg:          rgba(16, 185, 129, 0.08);
-  --green-border:      rgba(16, 185, 129, 0.25);
+  --blue-info:         #3B82F6;       /* Blue ONLY for info elements */
+  --blue-bg:           rgba(59, 130, 246, 0.10);
 
-  --amber:             #F59E0B;
-  --amber-bg:          rgba(245, 158, 11, 0.08);
-  --amber-border:      rgba(245, 158, 11, 0.25);
+  --green-success:     #10B981;       /* Green ONLY for success states */
+  --green-bg:          rgba(16, 185, 129, 0.10);
 
-  --red:               #EF4444;
-  --red-bg:            rgba(239, 68, 68, 0.08);
-  --red-border:        rgba(239, 68, 68, 0.25);
+  --red-error:         #EF4444;       /* Red ONLY for errors/warnings */
+  --red-bg:            rgba(239, 68, 68, 0.10);
 
   --font:              'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
   --radius-sm:         8px;
   --radius:            14px;
   --radius-lg:         20px;
-  --radius-xl:         26px;
 
-  --shadow-sm:         0 2px 4px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.02);
-  --shadow-md:         0 8px 20px -4px rgba(0, 0, 0, 0.06), 0 3px 8px -2px rgba(0, 0, 0, 0.03);
-  --shadow-hero:       0 18px 40px -8px rgba(30, 41, 59, 0.08), 0 6px 16px -4px rgba(255, 106, 0, 0.12);
-  --transition:        all 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  --shadow-sm:         0 2px 4px rgba(0, 0, 0, 0.25);
+  --shadow-md:         0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-hero:       0 16px 36px rgba(0, 0, 0, 0.45);
+  --transition:        all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* ── Global Reset ───────────────────────────────────────────── */
 html, body, [class*="css"] {
   font-family: var(--font) !important;
-  background-color: var(--bg-primary) !important;
+  background-color: var(--bg-canvas) !important;
   color: var(--text-body) !important;
   -webkit-font-smoothing: antialiased;
 }
 
 .stApp {
-  background-color: var(--bg-primary) !important;
+  background-color: var(--bg-canvas) !important;
 }
 
 /* ── Hide Streamlit Chrome Completely ──────────────────────── */
@@ -87,32 +85,32 @@ header,
 /* ── Main Canvas Layout Container ───────────────────────────── */
 .block-container {
   max-width: 860px !important;
-  padding: 1.5rem 1.5rem 3.5rem 1.5rem !important;
+  padding: 1rem 1.25rem 2.5rem 1.25rem !important;
   margin: 0 auto !important;
 }
 
 /* ── Landing Page Hero Section ──────────────────────────────── */
 .rr-hero {
   text-align: center;
-  padding: 2.5rem 1rem 2rem 1rem;
+  padding: 1.25rem 1rem 1rem 1rem;
 }
 
 .rr-logo-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 72px;
-  height: 72px;
+  width: 64px;
+  height: 64px;
   background: var(--bg-card);
   border: 1px solid var(--border-light);
-  border-radius: 22px;
-  font-size: 2.4rem;
-  margin-bottom: 1rem;
+  border-radius: 18px;
+  font-size: 2.1rem;
+  margin-bottom: 0.65rem;
   box-shadow: var(--shadow-md);
 }
 
 .rr-title {
-  font-size: 3.2rem;
+  font-size: 2.6rem;
   font-weight: 800;
   letter-spacing: -0.04em;
   color: var(--text-heading);
@@ -121,108 +119,62 @@ header,
 }
 
 .rr-subtitle {
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   color: var(--text-muted);
-  margin-top: 0.9rem;
-  line-height: 1.6;
+  margin-top: 0.65rem;
+  line-height: 1.5;
   font-weight: 400;
-  max-width: 520px;
+  max-width: 480px;
   margin-left: auto;
   margin-right: auto;
 }
 
-/* ── Hero Upload Card (Stands out distinctly) ───────────────── */
-.rr-upload-card {
-  background: var(--bg-card);
-  border: 1.5px solid var(--border-light);
-  border-radius: var(--radius-xl);
-  padding: 2.5rem 2.25rem;
-  margin-top: 1.75rem;
-  box-shadow: var(--shadow-hero);
-  transition: var(--transition);
-  position: relative;
-  overflow: hidden;
-}
-
-.rr-upload-card:hover {
-  border-color: var(--accent-primary);
-  box-shadow: 0 22px 48px -10px rgba(30, 41, 59, 0.12), 0 8px 24px -4px rgba(255, 106, 0, 0.18);
-}
-
-.rr-upload-header {
-  text-align: center;
-  margin-bottom: 1.5rem;
-}
-
-.rr-upload-icon-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 54px;
-  height: 54px;
-  background: var(--accent-soft);
-  color: var(--accent-primary);
-  border-radius: 16px;
-  font-size: 1.6rem;
-  margin-bottom: 0.75rem;
-}
-
-.rr-upload-title {
-  font-size: 1.35rem;
-  font-weight: 700;
-  color: var(--text-heading);
-  margin: 0;
-}
-
-.rr-upload-subtitle {
-  font-size: 0.92rem;
-  color: var(--text-muted);
-  margin-top: 0.3rem;
-}
-
-/* ── Streamlit File Uploader Overrides ──────────────────────── */
+/* ── Single Unified File Uploader Component ─────────────────── */
 [data-testid="stFileUploader"] {
-  background: var(--bg-secondary) !important;
+  background: var(--bg-card) !important;
   border: 2px dashed var(--border-medium) !important;
   border-radius: var(--radius-lg) !important;
-  padding: 2.25rem 1.5rem !important;
+  padding: 1.8rem 1.5rem !important;
   text-align: center !important;
+  box-shadow: var(--shadow-hero) !important;
   transition: var(--transition) !important;
 }
 
 [data-testid="stFileUploader"]:hover {
-  border-color: var(--accent-primary) !important;
+  border-color: var(--accent-orange) !important;
   background: var(--accent-soft) !important;
+  box-shadow: 0 16px 36px rgba(255, 106, 0, 0.15) !important;
 }
 
 [data-testid="stFileUploaderDropzone"] label {
   color: var(--text-heading) !important;
-  font-weight: 600 !important;
-  font-size: 1.05rem !important;
+  font-weight: 700 !important;
+  font-size: 1.1rem !important;
 }
 
 [data-testid="stFileUploaderDropzone"] small {
   color: var(--text-muted) !important;
-  font-size: 0.88rem !important;
+  font-size: 0.85rem !important;
 }
 
 [data-testid="stFileUploader"] button {
-  background-color: var(--bg-card) !important;
-  color: var(--text-heading) !important;
-  border: 1px solid var(--border-light) !important;
+  background: var(--accent-gradient) !important;
+  color: #FFFFFF !important;
+  border: none !important;
   border-radius: var(--radius-sm) !important;
-  font-weight: 600 !important;
-  padding: 0.5rem 1.1rem !important;
-  box-shadow: var(--shadow-sm) !important;
+  font-weight: 700 !important;
+  font-size: 0.95rem !important;
+  padding: 0.6rem 1.4rem !important;
+  box-shadow: 0 4px 14px rgba(255, 106, 0, 0.35) !important;
   transition: var(--transition) !important;
 }
 
 [data-testid="stFileUploader"] button:hover {
-  background-color: var(--bg-secondary) !important;
-  border-color: var(--border-medium) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 20px rgba(255, 106, 0, 0.45) !important;
 }
 
-/* ── Primary Action Buttons ─────────────────────────────────── */
+/* ── Primary Buttons ────────────────────────────────────────── */
 .stButton > button {
   background: var(--accent-gradient) !important;
   color: #FFFFFF !important;
@@ -230,37 +182,35 @@ header,
   border-radius: var(--radius-sm) !important;
   font-family: var(--font) !important;
   font-weight: 700 !important;
-  font-size: 1rem !important;
-  padding: 0.75rem 1.8rem !important;
+  font-size: 0.96rem !important;
+  padding: 0.7rem 1.6rem !important;
   transition: var(--transition) !important;
   cursor: pointer !important;
-  letter-spacing: 0.01em !important;
   box-shadow: 0 4px 14px rgba(255, 106, 0, 0.3) !important;
 }
 
 .stButton > button:hover {
   transform: translateY(-2px) !important;
-  box-shadow: 0 8px 24px rgba(255, 106, 0, 0.4) !important;
+  box-shadow: 0 8px 22px rgba(255, 106, 0, 0.45) !important;
 }
 
 .stButton > button:active {
   transform: translateY(0) !important;
-  box-shadow: 0 2px 8px rgba(255, 106, 0, 0.25) !important;
 }
 
-/* ── Layered Score Cards (Apple/Notion Minimal) ─────────────── */
+/* ── Layered Score Cards (Apple/Notion Minimal Dark) ────────── */
 .rr-scores-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1.35rem;
-  margin: 1.85rem 0;
+  gap: 1.1rem;
+  margin: 1.25rem 0;
 }
 
 .rr-score-card {
   background: var(--bg-card);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-lg);
-  padding: 1.6rem 1.8rem;
+  padding: 1.35rem 1.5rem;
   text-align: center;
   box-shadow: var(--shadow-md);
   transition: var(--transition);
@@ -273,7 +223,7 @@ header,
 }
 
 .rr-score-number {
-  font-size: 3.4rem;
+  font-size: 3.2rem;
   font-weight: 800;
   letter-spacing: -0.05em;
   line-height: 1;
@@ -281,116 +231,205 @@ header,
 }
 
 .rr-score-label {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 700;
-  color: var(--text-muted);
+  color: var(--accent-orange);
   text-transform: uppercase;
   letter-spacing: 0.09em;
-  margin-top: 0.55rem;
+  margin-top: 0.45rem;
 }
 
 .rr-score-sublabel {
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   color: var(--text-muted);
-  margin-top: 0.25rem;
+  margin-top: 0.2rem;
 }
 
-/* ── Recruiter Opening Banner ───────────────────────────────── */
+/* ── First Impression Opening Banner ───────────────────────── */
 .rr-opening-card {
   background: var(--bg-card);
   border: 1px solid var(--border-light);
-  border-left: 5px solid var(--accent-primary);
+  border-left: 5px solid var(--accent-orange);
   border-radius: var(--radius);
-  padding: 1.4rem 1.75rem;
-  margin-bottom: 1.75rem;
+  padding: 1.2rem 1.5rem;
+  margin-bottom: 1.25rem;
   box-shadow: var(--shadow-md);
-  font-size: 1.05rem;
-  line-height: 1.75;
+  font-size: 1.02rem;
+  line-height: 1.7;
   color: var(--text-heading);
   font-weight: 500;
 }
 
 /* ── Follow-Up Questions Card ───────────────────────────────── */
 .rr-followup-card {
-  background: var(--bg-secondary);
+  background: var(--bg-card);
   border: 1px solid var(--border-light);
-  border-left: 4px solid #6366F1;
+  border-left: 4px solid var(--blue-info);
   border-radius: var(--radius);
-  padding: 1.4rem 1.75rem;
-  margin-top: 2rem;
-  margin-bottom: 1.5rem;
+  padding: 1.25rem 1.5rem;
+  margin-top: 1.5rem;
+  margin-bottom: 1.25rem;
   box-shadow: var(--shadow-sm);
 }
 
 .rr-followup-title {
   font-weight: 700;
-  color: #4338CA;
-  margin-bottom: 0.75rem;
-  font-size: 1rem;
+  color: var(--blue-info);
+  margin-bottom: 0.65rem;
+  font-size: 0.98rem;
 }
 
-/* ── Conversation Bubbles ───────────────────────────────────── */
+/* ── Markdown Headings & Formatting ─────────────────────────── */
+.stMarkdown h2 {
+  color: var(--text-heading) !important;
+  font-size: 1.35rem !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em !important;
+  margin-top: 1.5rem !important;
+  margin-bottom: 0.65rem !important;
+  padding-bottom: 0.35rem !important;
+  border-bottom: 1px solid var(--border-light) !important;
+}
+
+.stMarkdown h3 {
+  color: var(--text-heading) !important;
+  font-size: 1.15rem !important;
+  font-weight: 600 !important;
+  margin-top: 1.2rem !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.stMarkdown p, .stMarkdown li {
+  color: var(--text-body) !important;
+  line-height: 1.7 !important;
+  font-size: 0.96rem !important;
+}
+
+/* ── Progress Card (Dark) ────────────────────────────────────── */
+.rr-progress-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem 1.8rem;
+  margin: 1.5rem 0;
+  box-shadow: var(--shadow-md);
+}
+
+.rr-progress-step {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 0;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}
+
+.rr-progress-step.done {
+  color: var(--green-success);
+  font-weight: 600;
+}
+
+.rr-progress-step.active {
+  color: var(--accent-orange);
+  font-weight: 700;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.rr-progress-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border-medium);
+  border-top-color: var(--accent-orange);
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+
+/* ── Conversation Bubbles (Dark) ────────────────────────────── */
 .rr-msg-user {
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 1.35rem;
+  margin-bottom: 1rem;
 }
 
 .rr-msg-user-bubble {
   background: var(--accent-gradient);
   color: #FFFFFF;
-  border-radius: 20px 20px 4px 20px;
-  padding: 0.85rem 1.35rem;
-  max-width: 78%;
-  font-size: 0.96rem;
+  border-radius: 18px 18px 4px 18px;
+  padding: 0.8rem 1.25rem;
+  max-width: 80%;
+  font-size: 0.95rem;
   line-height: 1.6;
   font-weight: 500;
-  box-shadow: 0 4px 14px rgba(255, 106, 0, 0.22);
+  box-shadow: 0 4px 14px rgba(255, 106, 0, 0.25);
 }
 
 .rr-msg-ai {
   display: flex;
   justify-content: flex-start;
-  margin-bottom: 1.35rem;
+  margin-bottom: 1rem;
 }
 
 .rr-msg-ai-bubble {
   background-color: var(--bg-card);
   border: 1px solid var(--border-light);
   color: var(--text-body);
-  border-radius: 20px 20px 20px 4px;
-  padding: 1.1rem 1.4rem;
+  border-radius: 18px 18px 18px 4px;
+  padding: 1rem 1.3rem;
   max-width: 88%;
-  font-size: 0.96rem;
-  line-height: 1.75;
+  font-size: 0.95rem;
+  line-height: 1.7;
   box-shadow: var(--shadow-md);
 }
 
-.rr-msg-ai-bubble h2,
-.rr-msg-ai-bubble h3 {
-  color: var(--text-heading) !important;
-  font-weight: 700 !important;
-  margin-top: 1rem !important;
-  margin-bottom: 0.5rem !important;
-}
-
-/* ── Sidebar (Left History Panel) ───────────────────────────── */
+/* ── Sidebar (Left History Panel Dark) ──────────────────────── */
 [data-testid="stSidebar"] {
-  background-color: var(--bg-card) !important;
+  background-color: var(--bg-secondary) !important;
   border-right: 1px solid var(--border-light) !important;
 }
 
 [data-testid="stSidebar"] .block-container {
-  padding: 1.75rem 1.1rem !important;
+  padding: 1.25rem 1rem !important;
 }
 
 .rr-sidebar-header {
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.09em;
   text-transform: uppercase;
   color: var(--text-muted);
-  margin: 1.35rem 0 0.65rem 0.4rem;
+  margin: 1.2rem 0 0.5rem 0.2rem;
+}
+
+/* ── Floating Modern Dark Chat Input (No Black Strip) ───────── */
+[data-testid="stBottom"],
+[data-testid="stBottom"] > div {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+[data-testid="stChatInput"] {
+  background-color: #1A1D24 !important;
+  border: 1px solid var(--border-medium) !important;
+  border-radius: 24px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important;
+  transition: var(--transition) !important;
+}
+
+[data-testid="stChatInput"]:focus-within {
+  border-color: var(--accent-orange) !important;
+  box-shadow: 0 0 0 3px var(--accent-glow) !important;
+}
+
+[data-testid="stChatInput"] textarea {
+  color: var(--text-heading) !important;
+  font-family: var(--font) !important;
+  font-size: 0.95rem !important;
 }
 
 /* ── Info & Error Cards ─────────────────────────────────────── */
@@ -398,87 +437,65 @@ header,
   background: var(--bg-card);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-sm);
-  padding: 0.85rem 1.2rem;
-  color: var(--text-muted);
-  font-size: 0.9rem;
-  margin: 0.85rem 0;
+  padding: 0.75rem 1.1rem;
+  color: var(--text-body);
+  font-size: 0.88rem;
+  margin: 0.75rem 0;
   box-shadow: var(--shadow-sm);
 }
 
 .rr-error {
   background: var(--red-bg);
-  border: 1px solid var(--red-border);
+  border: 1px solid var(--red-error);
   border-radius: var(--radius-sm);
-  padding: 1rem 1.3rem;
-  color: var(--red);
-  font-size: 0.92rem;
+  padding: 0.9rem 1.2rem;
+  color: var(--red-error);
+  font-size: 0.9rem;
   font-weight: 600;
-  margin: 1.1rem 0;
-  box-shadow: var(--shadow-sm);
+  margin: 0.9rem 0;
 }
 
-/* ── Expander (Dark Highlight Styling for Target Job Description) ── */
+/* ── Expander Styling ───────────────────────────────────────── */
 [data-testid="stExpander"] {
-  background-color: #1E293B !important;
-  border: 1px solid #334155 !important;
+  background-color: var(--bg-card) !important;
+  border: 1px solid var(--border-light) !important;
   border-radius: var(--radius) !important;
-  color: #F8FAFC !important;
-  margin-top: 1.25rem !important;
-  box-shadow: var(--shadow-md) !important;
-  overflow: hidden !important;
+  color: var(--text-heading) !important;
+  margin-top: 1rem !important;
+  box-shadow: var(--shadow-sm) !important;
 }
 
 [data-testid="stExpander"] summary {
-  background-color: #1E293B !important;
-  color: #F8FAFC !important;
+  background-color: var(--bg-card) !important;
+  color: var(--text-heading) !important;
   font-weight: 600 !important;
-  font-size: 0.95rem !important;
-  padding: 0.85rem 1.2rem !important;
+  font-size: 0.92rem !important;
+  padding: 0.75rem 1rem !important;
 }
 
 [data-testid="stExpander"] summary:hover {
-  color: var(--accent-primary) !important;
+  color: var(--accent-orange) !important;
 }
 
 [data-testid="stExpander"] textarea {
-  background-color: #0F172A !important;
-  color: #F8FAFC !important;
-  border: 1px solid #334155 !important;
-}
-
-/* ── Chat Input Control ─────────────────────────────────────── */
-[data-testid="stChatInput"] {
-  background-color: var(--bg-card) !important;
-  border: 1.5px solid var(--border-light) !important;
-  border-radius: var(--radius-lg) !important;
-  box-shadow: var(--shadow-md) !important;
-  transition: var(--transition) !important;
-}
-
-[data-testid="stChatInput"]:focus-within {
-  border-color: var(--accent-primary) !important;
-  box-shadow: 0 0 0 4px var(--accent-glow) !important;
-}
-
-[data-testid="stChatInput"] textarea {
+  background-color: var(--bg-canvas) !important;
   color: var(--text-heading) !important;
-  font-family: var(--font) !important;
-  font-size: 0.96rem !important;
+  border: 1px solid var(--border-light) !important;
 }
 
 /* ── Animations ──────────────────────────────────────────────── */
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
 .rr-animate {
-  animation: fadeInUp 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeInUp 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* ── Responsive adjustments ─────────────────────────────────── */
+/* ── Responsive Adjustments ─────────────────────────────────── */
 @media (max-width: 640px) {
-  .rr-title { font-size: 2.3rem; }
+  .rr-title { font-size: 2.2rem; }
   .rr-scores-row { grid-template-columns: 1fr; }
-  .block-container { padding: 1.5rem 1rem !important; }
+  .block-container { padding: 1rem 0.75rem !important; }
 }

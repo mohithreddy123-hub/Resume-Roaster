@@ -165,8 +165,8 @@ def render_multi_resume_banner(resumes: list[dict]) -> tuple[bool, bool, int]:
 # ── Divider & Utilities ───────────────────────────────────────
 
 def render_divider() -> None:
-    """Render a subtle divider line."""
-    st.markdown('<hr style="border:none; border-top:1px solid #E2E8F0; margin:2rem 0;">', unsafe_allow_html=True)
+    """Render a subtle dark divider line."""
+    st.markdown('<hr style="border:none; border-top:1px solid #2A2E39; margin:1.25rem 0;">', unsafe_allow_html=True)
 
 
 def render_error(message: str) -> None:

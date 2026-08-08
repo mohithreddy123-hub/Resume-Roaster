@@ -3,9 +3,8 @@
 """
 ui/upload.py
 ------------
-Upload component — handles custom hero file upload box UI, validation display,
-optional job description input, and primary trigger button.
-Uses uploaded_file.getvalue() to prevent file buffer exhaustion across Streamlit reruns.
+Upload component — single primary upload box UI.
+Renders Streamlit file_uploader directly as the hero dropzone card.
 """
 
 import streamlit as st
@@ -14,12 +13,12 @@ from config import MAX_FILE_SIZE_MB
 
 def render_upload_section() -> tuple[bytes | None, str | None, str]:
     """
-    Render the custom file upload hero section of the landing page.
+    Render the single primary file uploader section.
 
     Displays:
-        - Standout hero upload card with icon badge and clear hierarchy
-        - Streamlit drag & drop file uploader
-        - Optional Job Description toggle / input
+        - Streamlit drag & drop file uploader (styled directly as the hero card)
+        - Selected File feedback tag
+        - Optional Job Description input
         - Primary "🔥 Analyze Resume" button
 
     Returns:
@@ -28,31 +27,18 @@ def render_upload_section() -> tuple[bytes | None, str | None, str]:
     """
     uploader_key_id = st.session_state.get("uploader_key", 0)
 
-    st.markdown("""
-    <div class="rr-upload-card rr-animate">
-        <div class="rr-upload-header">
-            <div class="rr-upload-icon-badge">📄</div>
-            <div class="rr-upload-title">Drop your resume here</div>
-            <div class="rr-upload-subtitle">PDF or DOCX &nbsp;·&nbsp; up to 10MB</div>
-        </div>
-    """, unsafe_allow_html=True)
-
     uploaded_file = st.file_uploader(
-        label="Select a file from your computer",
+        label="📄 Drop your resume here (PDF or DOCX, up to 10MB)",
         type=["pdf", "docx"],
         accept_multiple_files=False,
         help=f"Supported: PDF, DOCX · Maximum size: {MAX_FILE_SIZE_MB}MB",
-        label_visibility="collapsed",
         key=f"file_uploader_widget_{uploader_key_id}",
     )
-
-    st.markdown("</div>", unsafe_allow_html=True)
 
     if uploaded_file is None:
         return None, None, ""
 
     # CRITICAL FIX: Use .getvalue() instead of .read()
-    # .read() exhausts the buffer pointer on first call, causing empty bytes on analyze button click!
     file_bytes = uploaded_file.getvalue()
     filename = uploaded_file.name
     file_size_kb = round(len(file_bytes) / 1024, 1)
